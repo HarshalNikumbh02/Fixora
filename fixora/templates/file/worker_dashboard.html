@@ -1,0 +1,112 @@
+{% extends 'file/base.html' %}
+
+{% block title %}Worker Dashboard - Fixora{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+        <h3 class="fw-bold mb-0">Available Jobs</h3>
+        <span class="badge bg-primary rounded-pill px-3 py-2">{{ available_complaints|length }} New</span>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for complaint in available_complaints %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card p-4 shadow-sm border-0 h-100" style="border-radius: 15px;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-light text-dark border">{{ complaint.category|title }}</span>
+                    {% if complaint.priority == 'high' %}
+                        <span class="badge bg-danger">High Priority</span>
+                    {% elif complaint.priority == 'medium' %}
+                        <span class="badge bg-warning text-dark">Medium Priority</span>
+                    {% else %}
+                        <span class="badge bg-success">Low Priority</span>
+                    {% endif %}
+                </div>
+                
+                <h5 class="fw-bold mt-2">{{ complaint.title }}</h5>
+                <p class="text-muted small mb-3" style="min-height: 40px;">{{ complaint.description|truncatechars:80 }}</p>
+                
+                <div class="mt-auto pt-3 border-top">
+                    <a href="{% url 'accept_complaint' complaint.id %}" class="btn btn-primary w-100 fw-bold" style="border-radius: 10px;">
+                        Accept Job
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 bg-white shadow-sm" style="border-radius: 15px;">
+            <i class="bi bi-cup-hot text-muted mb-2 d-block" style="font-size: 32px;"></i>
+            <h5 class="text-muted fw-medium mb-0">No new jobs available right now.</h5>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold mb-0">My Active Work</h3>
+    </div>
+
+    <div class="row g-4">
+        {% for complaint in my_jobs %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm p-4" style="border-radius: 15px; border-top: 4px solid #2563eb !important;">
+                
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h4 class="fw-bold mb-1">{{ complaint.title }}</h4>
+                        <div class="text-muted small"><i class="bi bi-geo-alt-fill me-1"></i> {{ complaint.location|default:"Location not specified" }}</div>
+                    </div>
+                    <span class="badge {% if complaint.status == 'in_progress' %}bg-primary{% else %}bg-success{% endif %}">
+                        {{ complaint.get_status_display }}
+                    </span>
+                </div>
+
+                <p class="text-secondary small mb-4">{{ complaint.description }}</p>
+
+                <form method="POST" action="{% url 'update_work_status' complaint.id %}" enctype="multipart/form-data" class="bg-light p-3 rounded-3">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="fw-semibold small text-dark mb-1">Update Status</label>
+                        <select name="status" class="form-select" style="border-radius: 8px;">
+                            <option value="in_progress" {% if complaint.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="completed" {% if complaint.status == 'completed' %}selected{% endif %}>Mark as Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-semibold small text-dark mb-1">Work Notes (Optional)</label>
+                        <textarea name="worker_notes" class="form-control" rows="2" style="border-radius: 8px;" placeholder="What did you fix?">{{ complaint.worker_notes|default:"" }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-semibold small text-dark mb-1">Upload Completion Photo</label>
+                        <input type="file" name="completion_image" class="form-control" accept="image/*" style="border-radius: 8px;">
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold" style="border-radius: 8px;">
+                        Save Updates
+                    </button>
+                </form>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 bg-white shadow-sm" style="border-radius: 15px;">
+            <p class="text-muted fw-medium mb-0">You haven't accepted any jobs yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

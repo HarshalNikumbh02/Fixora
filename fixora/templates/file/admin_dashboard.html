@@ -1,0 +1,235 @@
+{% extends 'file/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger py-2" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+<!-- Welcome Banner -->
+<div class="card border-0 shadow-sm rounded-4 mb-4"
+     style="background: linear-gradient(135deg, #2563eb, #1e40af);">
+
+    <div class="card-body p-4 text-white">
+
+        <h2 class="fw-bold mb-1">
+            Welcome Admin 👋
+        </h2>
+
+        <p class="mb-0 opacity-75">
+            Manage residents, complaints, services and workers efficiently.
+        </p>
+
+    </div>
+
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4">
+
+    <!-- Residents -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card dashboard-stat-card shadow-sm border-0 rounded-4 p-4">
+
+            <div class="d-flex justify-content-between align-items-center gap-4">
+
+                <div class="stat-content">
+                    <h6 class="text-muted mb-2">
+                        Residents
+                    </h6>
+
+                    <h2 class="fw-bold mb-0">
+                        {{ residents_count }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon residents-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Workers -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card dashboard-stat-card shadow-sm border-0 rounded-4 p-4">
+
+            <div class="d-flex justify-content-between align-items-center gap-4">
+
+                <div>
+                    <h6 class="text-muted mb-2">
+                        Workers
+                    </h6>
+
+                    <h2 class="fw-bold mb-0">
+                        {{ workers_count }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon workers-icon">
+                    <i class="bi bi-person-workspace"></i>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Complaints -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card dashboard-stat-card shadow-sm border-0 rounded-4 p-4">
+
+            <div class="d-flex justify-content-between align-items-center gap-4">
+
+                <div>
+                    <h6 class="text-muted mb-2">
+                        Complaints
+                    </h6>
+
+                    <h2 class="fw-bold mb-0">
+                        {{ complaints_count }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon complaints-icon">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Pending -->
+    <div class="col-md-3">
+        <div class="card dashboard-stat-card shadow-sm border-0 rounded-4 p-4">
+
+            <div class="d-flex justify-content-between align-items-center gap-4">
+
+                <div>
+                    <h6 class="text-muted mb-2">
+                        Pending
+                    </h6>
+
+                    <h2 class="fw-bold text-danger mb-0">
+                        {{ pending_count }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon pending-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Recent Complaints -->
+<div class="card border-0 shadow-sm rounded-4 mt-5">
+
+    <div class="card-header bg-white border-0 pt-4">
+
+        <div class="d-flex justify-content-between align-items-center gap-4">
+
+            <h5 class="fw-bold mb-0">
+                Recent Complaints
+            </h5>
+
+            <span class="badge bg-primary">
+                Live Society Data
+            </span>
+
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        {% for complaint in complaints %}
+
+        <div class="border rounded-4 p-3 mb-3">
+
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+
+                <div>
+
+                    <h6 class="fw-bold mb-1">
+                        {{ complaint.title }}
+                    </h6>
+
+                    <small class="text-muted">
+                        {{ complaint.resident.username }}
+                        •
+                        {{ complaint.category|title }}
+                    </small>
+
+                    <div class="mt-1">
+
+                        <small class="text-muted">
+                            {{ complaint.created_at|date:"d M Y - h:i A" }}
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <div>
+
+                    {% if complaint.status == 'pending' %}
+
+                    <span class="badge bg-warning text-dark">
+                        Pending
+                    </span>
+
+                    {% elif complaint.status == 'in_progress' %}
+
+                    <span class="badge bg-primary">
+                        In Progress
+                    </span>
+
+                    {% else %}
+
+                    <span class="badge bg-success">
+                        Completed
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="text-center py-4">
+
+            <p class="text-muted mb-0">
+                No complaints found.
+            </p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}

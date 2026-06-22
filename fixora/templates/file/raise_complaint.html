@@ -1,0 +1,136 @@
+{% extends 'file/base.html' %}
+{% load static %}
+
+{% block title %}Complaints Log - Fixora{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/raise_complaint.css' %}">
+<div id="complaintFormAnchor" class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="card p-4 shadow-sm border-0" style="border-radius: 15px; border: 2px solid #2563eb !important;">
+            <form method="POST" action="{% url 'raise_complaint_submit' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 16px; color: #0f172a;">1. Complaint
+                        Title</label>
+                    <input type="text" name="title" class="form-control"
+                        style="border-radius: 10px; height: 48px; border-color: #cbd5e1;"
+                        placeholder="Example: Water leakage in kitchen" required>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label class="form-label fw-bold" style="font-size: 16px; color: #0f172a;">2. Category</label>
+                        <select name="category" class="form-select form-control"
+                            style="border-radius: 10px; height: 48px; border-color: #cbd5e1;" required>
+                            <option value="" disabled selected>Select category</option>
+                            <option value="plumbing">Plumbing</option>
+                            <option value="electrical">Electrical</option>
+                            <option value="cleaning">Cleaning</option>
+                            <option value="tiles">Tiles</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold d-block"
+                            style="font-size: 16px; color: #0f172a; margin-bottom: 12px;">3. Priority</label>
+                        <input type="hidden" name="priority" id="priorityValue" value="low">
+                        <div class="d-flex flex-wrap gap-2 align-items-center" style="height: 48px;">
+                            <button type="button" class="btn priority-btn p-low active"
+                                onclick="setPriority('low', this)">Low</button>
+                            <button type="button" class="btn priority-btn p-medium"
+                                onclick="setPriority('medium', this)">Medium</button>
+                            <button type="button" class="btn priority-btn p-high"
+                                onclick="setPriority('high', this)">High</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 16px; color: #0f172a;">4. Description</label>
+                    <textarea name="description" class="form-control"
+                        style="border-radius: 10px; border-color: #cbd5e1;" rows="4"
+                        placeholder="Describe your issue in detail..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 16px; color: #0f172a;">5. Upload images <span
+                            class="text-muted fw-normal">(optional)</span></label>
+                    <div class="upload-drop-zone text-center p-4" id="dropZone"
+                        onclick="document.getElementById('fileInput').click()">
+                        <i class="bi bi-cloud-arrow-up-fill" style="font-size: 32px; color: #2563eb;"></i>
+                        <p class="mb-1 fw-semibold mt-2" style="font-size: 14px; color: #475569;">Drag & drop images
+                            here</p>
+                        <p class="text-muted mb-2" style="font-size: 12px;">or</p>
+                        <button type="button" class="btn btn-sm btn-outline-primary px-3"
+                            style="border-radius: 8px;">Browse files</button>
+                        <p class="text-muted mt-2 mb-0" id="fileFeedback" style="font-size: 11px;">Max 1 image, 5 MB
+                            each</p>
+                        <input type="file" name="problem_image" id="fileInput" accept="image/*" style="display: none;"
+                            onchange="handleFileSelect(this)">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 16px; color: #0f172a;">6. Location</label>
+                    <input type="text" name="location" class="form-control"
+                        style="border-radius: 10px; height: 48px; border-color: #cbd5e1; background-color: #f8fafc;"
+                        value="SkyLuxe Society, Tower A-101" placeholder="Specify block floor/flat contexts">
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a href="{% url 'resident_dashboard' %}" class="btn btn-outline-secondary px-4"
+                        style="border-radius: 10px; height: 44px; display: inline-flex; align-items: center;">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold"
+                        style="background: #1d4ed8; border: none; border-radius: 10px; height: 44px;">Submit complaint
+                        <i class="bi bi-send-fill ms-2" style="font-size: 14px;"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card p-4 shadow-sm border-0 h-100" style="border-radius: 15px; background: white;">
+            <div class="tips-heading-container mb-4 d-flex align-items-center gap-2">
+                <i class="bi bi-lightbulb-fill text-warning" style="font-size: 24px;"></i>
+                <h5 class="fw-bold mb-0" style="color: #0f172a;">Tips for faster resolution</h5>
+            </div>
+
+            <div class="d-flex flex-column gap-4">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="icon-indicator p-2 rounded-3" style="background: #eff6ff; color: #2563eb;"><i
+                            class="bi bi-camera-fill"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="font-size: 14px; color: #334155;">Add clear images</h6>
+                        <p class="text-muted mb-0" style="font-size: 12px; line-height: 1.5;">Attach images of the issue
+                            for better understanding by our staff experts.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="icon-indicator p-2 rounded-3" style="background: #fdf2f8; color: #db2777;"><i
+                            class="bi bi-geo-alt-fill"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="font-size: 14px; color: #334155;">Mention exact location</h6>
+                        <p class="text-muted mb-0" style="font-size: 12px; line-height: 1.5;">Help us identify the exact
+                            location of the issue within the wing premises.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="icon-indicator p-2 rounded-3" style="background: #f0fdf4; color: #16a34a;"><i
+                            class="bi bi-list-stars"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="font-size: 14px; color: #334155;">Select the proper category
+                        </h6>
+                        <p class="text-muted mb-0" style="font-size: 12px; line-height: 1.5;">Choose the correct
+                            category to instantly assign the right expert to your case file ticket.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/raise_complaint.js' %}"></script>
+{% endblock %}

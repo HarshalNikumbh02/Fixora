@@ -1,0 +1,149 @@
+{% extends 'file/base.html' %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger py-2" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                Society Users
+            </h3>
+
+            <p class="text-muted mb-0">
+                Manage residents and workers
+            </p>
+        </div>
+
+        <a href="{% url 'register' %}"
+           class="btn btn-primary rounded-3 px-4">
+            <i class="bi bi-plus-circle me-2"></i>
+            Add User
+        </a>
+
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Residents -->
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="fw-bold">
+                        Residents
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    {% for resident in residents %}
+
+                    <div class="border rounded-3 p-3 mb-3">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+
+                                <h6 class="fw-bold mb-1">
+                                    {{ resident.username }}
+                                </h6>
+
+                                <small class="text-muted">
+                                    {{ resident.email }}
+                                </small>
+
+                            </div>
+
+                            <span class="badge bg-primary">
+                                Resident
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    {% empty %}
+
+                    <p class="text-muted">
+                        No residents found.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Workers -->
+        <div class="col-lg-6">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="fw-bold">
+                        Workers
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    {% for worker in workers %}
+
+                    <div class="border rounded-3 p-3 mb-3">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <div>
+
+                                <h6 class="fw-bold mb-1">
+                                    {{ worker.username }}
+                                </h6>
+
+                                <small class="text-muted">
+                                    {{ worker.email }}
+                                </small>
+
+                            </div>
+
+                            <span class="badge bg-warning text-dark">
+                                Worker
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    {% empty %}
+
+                    <p class="text-muted">
+                        No workers found.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

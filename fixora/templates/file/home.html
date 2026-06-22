@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixora - Smart Society Care</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body>
+
+    <header class="home-navbar">
+        <div class="brand-title">
+             FIXORA
+        </div>
+        <nav class="nav-links">
+            <a href="#" class="nav-link-item active">Home</a>
+            <a href="#services" class="nav-link-item">Society Services</a>
+            <a href="#how-it-works" class="nav-link-item">How It Works</a>
+            <a href="{% url 'login' %}" class="btn-nav-login">Login to Portal</a>
+        </nav>
+    </header>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Smart Society Care, Managed Intelligently</h1>
+            <p class="hero-description">
+                Welcome to Fixora—the ultimate maintenance and service automation utility platform for modern residential spaces. Seamlessly log property maintenance issues, schedule technician visits, check amenity real-time statuses, and communicate with society management instantly.
+            </p>
+            <div class="hero-buttons">
+                <a href="{% url 'login' %}" class="btn-hero-primary">File Maintenance Ticket</a>
+                <a href="{% url 'login' %}" class="btn-hero-secondary">Resident Dashboard</a>
+            </div>
+        </div>
+        <div class="hero-vector-art">
+            <img src="{% static 'images/home.png' %}" alt="Fixora Smart Society Care Illustration" class="vector-img shadow-lg">
+        </div>
+    </section>
+
+    <section class="section-wrapper" id="services">
+        <h2 class="section-main-heading">Our Maintenance Modules</h2>
+        <p class="section-sub-heading">Everything required to run your residential ecosystem perfectly</p>
+        
+        <div class="services-grid">
+            <div class="service-home-card">
+                <div class="service-icon-box bg-primary-subtle text-primary"><i class="bi bi-droplet-fill"></i></div>
+                <h4 class="card-title">Plumbing Assistance</h4>
+                <p class="card-desc">Instantly report pipeline leakage, drainage choke-ups, flush malfunctions, or corporate overhead main tank water supply inconsistencies.</p>
+            </div>
+            <div class="service-home-card">
+                <div class="service-icon-box bg-warning-subtle text-warning"><i class="bi bi-lightning-charge-fill"></i></div>
+                <h4 class="card-title">Electrical Repairs</h4>
+                <p class="card-desc">Log tripping phase lines, faulty lobby circuit boards, elevator power backups, intercom issues, or localized flat wiring issues.</p>
+            </div>
+            <div class="service-home-card">
+                <div class="service-icon-box bg-success-subtle text-success"><i class="bi bi-brush-fill"></i></div>
+                <h4 class="card-title">Facility Cleaning</h4>
+                <p class="card-desc">Maintain high-end society hygiene by coordinating floor sweeping, garbage dispatch pipelines, garden upkeep, or pool disinfection schedules.</p>
+            </div>
+            <div class="service-home-card">
+                <div class="service-icon-box bg-info-subtle text-info"><i class="bi bi-wrench-adjustable"></i></div>
+                <h4 class="card-title">Carpentry & Structural</h4>
+                <p class="card-desc">File requests for lobby door lock repairs, common property window pane adjustments, gym gear setups, or tile structural cracks.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-wrapper bg-white" id="how-it-works">
+        <h2 class="section-main-heading">How It Works</h2>
+        <p class="section-sub-heading">Four effortless steps to complete resolution lifecycle</p>
+        
+        <div class="workflow-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h5 class="fw-bold text-dark mb-2">Login To Flat</h5>
+                <p class="text-muted mb-0" style="font-size: 13px;">Securely log in linked to your assigned apartment block and verification token details.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h5 class="fw-bold text-dark mb-2">Raise Ticket</h5>
+                <p class="text-muted mb-0" style="font-size: 13px;">Upload issue proof images, mark your apartment location, and specify job task urgency metrics.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h5 class="fw-bold text-dark mb-2">Worker Allocation</h5>
+                <p class="text-muted mb-0" style="font-size: 13px;">Management maps the ideal certified maintenance technician and tracks live status logs.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="corporate-footer text-center">
+        <div class="footer-top-grid">
+            <div class="footer-col">
+                <h5>Fixora System</h5>
+                <p style="font-size: 13px; color: #64748b; line-height: 1.6;">Smart Society Care automation platform engineered to optimize modern lifestyle community infrastructure assets.</p>
+            </div>
+            <div class="footer-col">
+                <h5>Quick Links</h5>
+                <ul>
+                    <li><a href="#">Portal Home</a></li>
+                    <li><a href="#services">Maintenance Modules</a></li>
+                    <li><a href="#how-it-works">Process Flow</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h5>Contact Admin Desk</h5>
+                <p class="mb-2" style="font-size: 13px;"><i class="bi bi-envelope-fill me-2 text-primary"></i> (hnikumbh12@gmail.com)care@fixora-society.com</p>
+                <p style="font-size: 13px;"><i class="bi bi-geo-alt-fill me-2 text-danger"></i>Nashik, Maharashtra</p>
+            </div>
+        </div>
+        <p class="mb-0" style="font-size: 12px;">&copy; 2026 Fixora – Smart Society Care Management. All Rights Reserved.</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,235 @@
+{% extends 'file/base.html' %}
+{% load static %}
+
+{% block title %}Resident Dashboard - Fixora{% endblock %}
+
+{% block content %}
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert">
+    </button>
+</div>
+{% endfor %}
+{% endif %}
+<div class="welcome-banner">
+    <h1>Hi {{ user.username|capfirst }} 👋</h1>
+    <p class="society-name">
+        {{ user.society.name }}
+    </p>
+
+    <div class="action-buttons-group">
+        <a href="{% url 'raise_complaint' %}"
+            class="btn btn-raise-complaint d-inline-flex align-items-center justify-content-center">
+            <i class="bi bi-hand-index-thumb me-2"></i> Raise Complaint
+        </a>
+
+        <a href="{% url 'book_service' %}"
+            class="btn btn-book-service d-inline-flex align-items-center justify-content-center">
+            <i class="bi bi-wrench-adjustable me-2"></i> Book service
+        </a>
+
+    </div>
+</div>
+
+<section class="dashboard-section">
+    <h3 class="section-heading">Quick actions</h3>
+    <div class="quick-actions-grid">
+        <div class="action-card" onclick="openQuickComplaint('Plumbing')">
+            <div class="icon-wrapper blue-bg"><i class="bi bi-droplet"></i></div>
+            <span>Plumbing</span>
+        </div>
+        <div class="action-card" onclick="openQuickComplaint('Electrical')">
+            <div class="icon-wrapper yellow-bg"><i class="bi bi-lightning-charge"></i></div>
+            <span>Electrical</span>
+        </div>
+        <div class="action-card" onclick="openQuickComplaint('Cleaning')">
+            <div class="icon-wrapper green-bg"><i class="bi bi-brush"></i></div>
+            <span>Cleaning</span>
+        </div>
+        <div class="action-card" onclick="openQuickComplaint('Glass')">
+            <div class="icon-wrapper lightblue-bg"><i class="bi bi-square"></i></div>
+            <span>Glass</span>
+        </div>
+        <div class="action-card" onclick="openQuickComplaint('Tiles')">
+            <div class="icon-wrapper indigo-bg"><i class="bi bi-grid-3x3-gap"></i></div>
+            <span>Tiles</span>
+        </div>
+        <div class="action-card">
+            <div class="icon-wrapper orange-bg"><i class="bi bi-three-dots"></i></div>
+            <span>More</span>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section mt-4">
+    <h3 class="section-heading">Recent complaints</h3>
+    <div class="complaints-grid">
+
+        {% if complaints %}
+        {% for complaint in complaints %}
+        {% if complaint.priority == 'high' %}
+        <div class="text-danger fw-bold">
+            🚨 Urgent Issue
+        </div>
+        {% endif %}
+        <div class="complaint-card d-flex justify-content-between align-items-center">
+            <div class="complaint-info-side">
+                <h4 class="complaint-title mb-1" style="font-weight: 600; color: #1e293b;">{{ complaint.title }}</h4>
+                <div class="complaint-meta">
+
+                    <span class="time">
+                        <i class="bi bi-clock"></i>
+                        Raised {{ complaint.created_at|date:"d M, g:i A" }}
+                    </span>
+
+                    <span
+                        class="status-badge {% if complaint.status == 'pending' %}pending{% elif complaint.status == 'in_progress' %}in-progress{% else %}completed{% endif %} ms-2">
+                        {{ complaint.get_status_display }}
+                    </span>
+
+                    {% if complaint.assigned_worker %}
+
+                    <div class="mt-2">
+
+                        <div class="small text-success fw-semibold">
+                            <i class="bi bi-person-check-fill"></i>
+                            Worker Assigned
+                        </div>
+
+                        <div class="small text-muted">
+                            <strong>Name:</strong>
+                            {{ complaint.assigned_worker.username }}
+                        </div>
+
+                        <div class="small text-muted">
+                            <strong>Phone:</strong>
+                            {{ complaint.assigned_worker.phone }}
+                        </div>
+
+                        {% if complaint.status == 'completed' %}
+
+                        <div class="mt-3 p-2 border rounded">
+
+                            <div class="text-success fw-bold">
+                                ✅ Work Completed
+                            </div>
+
+                            {% if complaint.completed_at %}
+                            <div class="small text-success mt-2">
+                                <strong>Resolved in:</strong>
+                                {{ complaint.completed_at|timesince:complaint.created_at }}
+                            </div>
+                            {% endif %}
+
+                            {% if complaint.worker_notes %}
+                            <div class="small text-muted mt-1">
+                                <strong>Worker Notes:</strong>
+                                {{ complaint.worker_notes }}
+                            </div>
+                            {% endif %}
+
+                            {% if complaint.completion_image %}
+                            <div class="mt-2">
+                                <img src="{{ complaint.completion_image.url }}" width="120" class="rounded border">
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                        {% endif %}
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="small text-muted mt-2">
+                        Waiting for worker assignment
+                    </div>
+
+                    {% endif %}
+
+                </div>
+            </div>
+
+            {% if complaint.image %}
+            <div class="complaint-image-preview">
+                <a href="{{ complaint.image.url }}" target="_blank">
+                    <img src="{{ complaint.image.url }}" alt="Problem Image"
+                        style="width: 55px; height: 55px; object-fit: cover; border-radius: 10px; border: 1px solid #e2e8f0;">
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="col-12 text-center py-4 bg-white rounded-3 shadow-sm">
+            <p class="text-muted mb-0">No complaints filed yet. You're all clear!</p>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="complaintModalLabel" style="font-size: 22px; color: #0f172a;">File a
+                    Complaint</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="complaintForm" action="{% url 'raise_complaint_submit' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+                <!-- FIX: Hidden defaults so the modal payload structure matches your full-page schema requirements -->
+                <input type="hidden" name="priority" value="low">
+                <input type="hidden" name="location" value="SkyLuxe Society (Quick Filed)">
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary">Issue Title</label>
+                        <input type="text" name="title" id="modalTitle" class="form-control"
+                            style="border-radius: 10px; height: 45px;" placeholder="e.g. Kitchen flush leaking"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary">
+                            Category
+                        </label>
+
+                        <div class="form-control d-flex align-items-center fw-semibold"
+                            style="border-radius: 10px; height: 45px; background-color: #f1f5f9;">
+
+                            {{ selected_category|title }}
+
+                        </div>
+
+                        <input type="hidden" name="category" value="{{ selected_category }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary">Detailed Description</label>
+                        <textarea name="description" class="form-control" style="border-radius: 10px;" rows="4"
+                            placeholder="Describe the problem context here..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary">Upload Image of the Problem</label>
+                        <input type="file" name="problem_image" id="problemImage" class="form-control" accept="image/*"
+                            style="border-radius: 10px;">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary" style="border-radius: 10px;"
+                        data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="background: #2563eb; border: none; border-radius: 10px; padding: 8px 20px;">Submit
+                        Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/resident_dashboard.js' %}"></script>
+{% endblock %}

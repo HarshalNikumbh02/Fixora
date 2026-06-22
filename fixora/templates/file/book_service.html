@@ -1,0 +1,207 @@
+{% extends 'file/base.html' %}
+{% load static %}
+
+{% block title %}Book a Service - Fixora{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/book_service.css' %}">
+
+<div class="row g-4 pt-2 position-relative">
+
+    <!-- LEFT: FORM SECTION -->
+    <div class="col-lg-8">
+        <div class="card p-4 shadow-sm border-0" style="border-radius: 15px; background: white;">
+            <h4 class="fw-bold mb-1" style="color: #0f172a;">Book a Service</h4>
+            <p class="text-muted mb-4" style="font-size: 14px;">Schedule a service at your convenience</p>
+
+            <form method="POST" action="{% url 'book_service_submit' %}" enctype="multipart/form-data" id="bookingForm">
+                {% csrf_token %}
+                <input type="hidden" name="category" id="categoryValue" value="plumbing">
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">1. Select a service
+                        category</label>
+                    <div class="row g-2 text-center">
+                        <div class="col-4 col-md-2">
+                            <div class="category-tile active" onclick="setServiceCategory('plumbing', this)">
+                                <div class="icon-wrapper blue-bg"><i class="bi bi-droplet"></i></div>
+                                <span>Plumbing</span>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <div class="category-tile" onclick="setServiceCategory('electrical', this)">
+                                <div class="icon-wrapper yellow-bg"><i class="bi bi-lightning-charge"></i></div>
+                                <span>Electrical</span>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <div class="category-tile" onclick="setServiceCategory('cleaning', this)">
+                                <div class="icon-wrapper green-bg"><i class="bi bi-brush"></i></div>
+                                <span>Cleaning</span>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <div class="category-tile" onclick="setServiceCategory('glass', this)">
+                                <div class="icon-wrapper lightblue-bg"><i class="bi bi-square"></i></div>
+                                <span>Glass</span>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <div class="category-tile" onclick="setServiceCategory('tiles', this)">
+                                <div class="icon-wrapper indigo-bg"><i class="bi bi-grid-3x3-gap"></i></div>
+                                <span>Tiles</span>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-2">
+                            <div class="category-tile" onclick="setServiceCategory('other', this)">
+                                <div class="icon-wrapper orange-bg"><i class="bi bi-three-dots"></i></div>
+                                <span>More</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">2. Preferred
+                            date</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"
+                                style="border-radius: 10px 0 0 10px;"><i class="bi bi-calendar3 text-muted"></i></span>
+                            <input type="date" name="preferred_date" id="dateInput" class="form-control border-start-0"
+                                style="border-radius: 0 10px 10px 0; height: 45px;" required onchange="updateSummary()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">3. Preferred time
+                            slot</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"
+                                style="border-radius: 10px 0 0 10px;"><i class="bi bi-clock text-muted"></i></span>
+                            <select name="preferred_time_slot" id="timeInput" class="form-select border-start-0"
+                                style="border-radius: 0 10px 10px 0; height: 45px;" required onchange="updateSummary()">
+                                <option value="" disabled selected>Select time slot</option>
+                                <option value="09:00 AM - 12:00 PM">09:00 AM - 12:00 PM</option>
+                                <option value="12:00 PM - 03:00 PM">12:00 PM - 03:00 PM</option>
+                                <option value="03:00 PM - 06:00 PM">03:00 PM - 06:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">4. Location</label>
+                    <input type="text" name="location" class="form-control" style="border-radius: 10px; height: 45px;"
+                        placeholder="e.g. Tower A, Flat 101" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">5. Additional notes <span
+                            class="text-muted fw-normal">(optional)</span></label>
+                    <textarea name="additional_notes" id="notesInput" class="form-control" style="border-radius: 10px;"
+                        rows="3" placeholder="Any additional information that can help us serve you better"
+                        oninput="updateSummary()"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">6. Upload images <span
+                            class="text-muted fw-normal">(optional)</span></label>
+
+                    <div class="upload-drop-zone text-center p-4" id="dropZone"
+                        onclick="document.getElementById('fileInput').click()">
+                        <i class="bi bi-cloud-arrow-up-fill" style="font-size: 28px; color: #2563eb;"></i>
+                        <p class="mb-1 fw-semibold mt-2" style="font-size: 13px; color: #475569;">Drag & drop images
+                            here</p>
+                        <p class="text-muted mb-2" style="font-size: 11px;">or</p>
+
+                        <button type="button" class="btn btn-sm btn-outline-primary px-3" style="border-radius: 8px;"
+                            onclick="event.stopPropagation(); document.getElementById('fileInput').click();">
+                            Browse files
+                        </button>
+
+                        <p class="text-muted mt-2 mb-0" id="fileFeedback" style="font-size: 11px;">Max 1 image, 5 MB
+                            each</p>
+                        <input type="file" name="service_image" id="fileInput" accept="image/*" style="display: none;"
+                            onchange="handleFileSelect(this)">
+                    </div>
+                </div>
+                <div class="mt-5 pt-4 border-top d-flex align-items-center">
+                    <a href="{% url 'resident_dashboard' %}" 
+                       class="btn btn-light text-secondary px-4 fw-semibold" 
+                       style="border-radius: 10px; height: 45px; display: inline-flex; align-items: center; border: 1px solid #e2e8f0; transition: all 0.2s ease;"
+                       onmouseover="this.style.backgroundColor='#f1f5f9'"
+                       onmouseout="this.style.backgroundColor='#f8fafc'">
+                        <i class="bi bi-arrow-left me-2"></i> Cancel & Return
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RIGHT: SUMMARY SIDEBAR -->
+    <div class="col-lg-4">
+        <!-- Using position: sticky so it floats nicely alongside the form -->
+        <div class="card p-4 border-0 shadow-sm"
+            style="border-radius: 15px; background: white; position: sticky; top: 100px; z-index: 10;">
+            <h5 class="fw-bold mb-4" style="color: #0f172a; font-size: 15px;">Booking Summary</h5>
+
+            <div class="summary-list d-flex flex-column gap-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3">
+                        <div class="summary-icon shadow-sm" id="summaryCategoryIcon"
+                            style="background: #eff6ff; color: #2563eb;"><i class="bi bi-droplet"></i></div>
+                        <div>
+                            <p class="text-muted mb-0" style="font-size: 11px;">Selected service</p>
+                            <h6 class="fw-bold text-capitalize mb-0" id="summaryCategoryText"
+                                style="font-size: 13px; color: #1e293b;">Plumbing</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3">
+                        <div class="summary-icon bg-light text-secondary"><i class="bi bi-calendar3"></i></div>
+                        <div>
+                            <p class="text-muted mb-0" style="font-size: 11px;">Preferred date</p>
+                            <h6 class="fw-bold mb-0" id="summaryDateText" style="font-size: 13px; color: #1e293b;">Not
+                                selected</h6>
+                        </div>
+                    </div>
+                    <span class="text-primary fw-semibold" style="font-size: 12px; cursor: pointer;"
+                        onclick="document.getElementById('dateInput').focus()">Edit</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3">
+                        <div class="summary-icon bg-light text-secondary"><i class="bi bi-clock"></i></div>
+                        <div>
+                            <p class="text-muted mb-0" style="font-size: 11px;">Preferred time slot</p>
+                            <h6 class="fw-bold mb-0" id="summaryTimeText" style="font-size: 13px; color: #1e293b;">Not
+                                selected</h6>
+                        </div>
+                    </div>
+                    <span class="text-primary fw-semibold" style="font-size: 12px; cursor: pointer;"
+                        onclick="document.getElementById('timeInput').focus()">Edit</span>
+                </div>
+            </div>
+
+            <div class="p-3 my-4 rounded-3" style="background-color: #eff6ff; border-left: 4px solid #2563eb;">
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-1" style="font-size: 12px; color: #1e40af;"><i
+                        class="bi bi-info-circle-fill"></i> What happens next?</h6>
+                <p class="text-secondary mb-0" style="font-size: 11px; line-height: 1.4;">We'll assign a qualified
+                    technician and confirm your booking shortly.</p>
+            </div>
+
+            <button type="button" onclick="document.getElementById('bookingForm').submit();"
+                class="btn btn-secondary w-100 fw-bold py-2"
+                style="border-radius: 10px; background-color: #e2e8f0; color: #94a3b8; border: none; font-size: 14px;"
+                id="confirmButton" disabled>Confirm booking</button>
+            <p class="text-center text-muted mt-3 mb-0" style="font-size: 11px;"><i class="bi bi-lock-fill"></i> You can
+                review your details before confirming.</p>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/book_service.js' %}"></script>
+
+{% endblock %}

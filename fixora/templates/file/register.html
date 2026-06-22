@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New User - Fixora Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+<body>
+
+<div class="main-container">
+    <div class="left-side">
+        <img src="{% static 'images/logo.png' %}" class="logo">
+        <h2>Society Management Console</h2>
+        <p>Admin Authorization Required</p>
+    </div>
+
+    <div class="right-side">
+        <div class="register-box shadow-sm">
+            <h1 class="login-title" style="font-size: 32px;">Add New User</h1>
+            <p class="sub-title">Register a new resident or worker for the society</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} py-2" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    
+                    <input type="text" name="username" class="form-control" placeholder="Assigned Username" required>
+                    
+                    <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                    
+                    <input type="text" name="phone" class="form-control" placeholder="Phone Number (10 Digits)" 
+                           maxlength="10" 
+                           pattern="\d{10}" 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                           required>
+                    
+                    <select name="role" class="form-control form-select mb-3" style="height: 45px;" required>
+                        <option value="" disabled selected>Assign System Role</option>
+                        <option value="resident">Resident</option>
+                        <option value="worker">Maintenance Worker</option>
+                    </select>
+
+                    <input type="password" name="password" class="form-control" placeholder="Temporary Password" required>
+                    <input type="password" name="confirm_password" class="form-control" placeholder="Confirm Temporary Password" required>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <a href="{% url 'manage_users' %}" class="btn btn-light flex-fill" style="height: 50px; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid #dee2e6; border-radius: 10px;">Cancel</a>
+                        <button type="submit" class="btn-login flex-fill m-0">Create User</button>
+                    </div>
+                </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+
+    /* CATEGORY SELECTION TILES SCHEME */
+    .category-tile {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .category-tile span { font-size: 12px; font-weight: 600; color: #64748b; }
+    .category-tile:hover { transform: translateY(-2px); border-color: #cbd5e1; }
+    .category-tile.active { border: 2px solid #2563eb !important; background-color: #f8fafc; }
+    .category-tile.active span { color: #0f172a; }
+
+    .summary-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    .upload-drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; background-color: #f8fafc; cursor: pointer; transition: 0.3s; }
+    .upload-drop-zone:hover { border-color: #2563eb; background-color: #eff6ff; }

@@ -1,0 +1,285 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Fixora Dashboard{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar">
+
+        <div class="offcanvas-header">
+
+            <h5 class="offcanvas-title">
+                Fixora
+            </h5>
+
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas">
+            </button>
+
+        </div>
+
+        <div class="offcanvas-body">
+
+            <nav class="sidebar-menu">
+
+                {% if user.role == 'superadmin' %}
+                
+                <a href="{% url 'superadmin_dashboard' %}" class="menu-item">
+                    <i class="bi bi-globe2"></i> Platform Overview
+                </a>
+                
+                <a href="{% url 'settings' %}" class="menu-item">
+                    <i class="bi bi-gear"></i> System Settings
+                </a>
+
+                {% elif user.role == 'admin' %}
+
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <i class="bi bi-speedometer2"></i>
+                    Admin Dashboard
+                </a>
+
+                <a href="{% url 'register' %}" class="menu-item">
+                    <i class="bi bi-person-plus"></i>
+                    Add User
+                </a>
+
+                <a href="{% url 'manage_users' %}" class="menu-item">
+                    <i class="bi bi-people"></i>
+                    Manage Users
+                </a>
+
+                {% elif user.role == 'worker' %}
+
+                <a href="{% url 'worker_dashboard' %}" class="menu-item">
+                    <i class="bi bi-tools"></i>
+                    Worker Dashboard
+                </a>
+
+                {% else %}
+
+                <a href="{% url 'resident_dashboard' %}" class="menu-item">
+                    <i class="bi bi-house-door"></i>
+                    Dashboard
+                </a>
+
+                <a href="{% url 'complaints_log' %}" class="menu-item">
+                    <i class="bi bi-hand-index-thumb"></i>
+                    Complaints
+                </a>
+
+                {% endif %}
+
+            </nav>
+
+        </div>
+
+    </div>
+    <div class="dashboard-container">
+
+        <!-- Desktop Sidebar -->
+        <aside class="sidebar">
+            <div class="brand-section">
+                {% if user.role == 'superadmin' %}
+                    <a href="{% url 'superadmin_dashboard' %}">
+                {% elif user.role == 'admin' %}
+                    <a href="{% url 'admin_dashboard' %}">
+                {% elif user.role == 'worker' %}
+                    <a href="{% url 'worker_dashboard' %}">
+                {% else %}
+                    <a href="{% url 'resident_dashboard' %}">
+                {% endif %}
+
+                        <img src="{% static 'images/logo.png' %}" alt="Fixora Logo" class="sidebar-logo">
+                    </a>
+
+                <p class="tagline">Fix it fast. Live better</p>
+            </div>
+
+            <nav class="sidebar-menu">
+
+                {% if user.role == 'superadmin' %}
+                
+                <a href="{% url 'superadmin_dashboard' %}" class="menu-item">
+                    <i class="bi bi-globe2"></i> Platform Overview
+                </a>
+                <a href="{% url 'superadmin_analytics' %}" class="menu-item">
+                    <i class="bi bi-graph-up-arrow"></i> Platform Analytics
+                </a>
+                <a href="{% url 'settings' %}" class="menu-item">
+                    <i class="bi bi-gear"></i> System Settings
+                </a>
+
+                {% elif user.role == 'admin' %} <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <i class="bi bi-speedometer2"></i> Admin Dashboard
+                </a>
+
+                <a href="{% url 'register' %}" class="menu-item">
+                    <i class="bi bi-person-plus"></i> Add User
+                </a>
+
+                <a href="{% url 'manage_users' %}" class="menu-item">
+                    <i class="bi bi-people"></i> Manage Users
+                </a>
+
+                <a href="{% url 'manage_complaints' %}" class="menu-item">
+                    <i class="bi bi-tools"></i> Manage Complaints
+                </a>
+
+                <a href="{% url 'alerts' %}" class="menu-item">
+                    <i class="bi bi-bell"></i> Alerts
+                </a>
+
+                {% elif user.role == 'worker' %}
+
+                <a href="{% url 'worker_dashboard' %}" class="menu-item">
+                    <i class="bi bi-tools"></i> Worker Dashboard
+                </a>
+
+                <a href="{% url 'alerts' %}" class="menu-item">
+                    <i class="bi bi-bell"></i> Alerts
+                </a>
+
+                {% else %}
+
+                <a href="{% url 'resident_dashboard' %}" class="menu-item">
+                    <i class="bi bi-house-door"></i> Dashboard
+                </a>
+
+                <a href="{% url 'complaints_log' %}" class="menu-item">
+                    <i class="bi bi-hand-index-thumb"></i> Complaints
+                </a>
+
+                <a href="{% url 'my_services' %}" class="menu-item">
+                    <i class="bi bi-person-gear"></i> Service Requests
+                </a>
+
+                <a href="{% url 'alerts' %}" class="menu-item">
+                    <i class="bi bi-bell"></i> Alerts
+                </a>
+
+                {% endif %}
+
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{% url 'logout' %}" class="btn-logout-sidebar">
+                    <i class="bi bi-box-arrow-left"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <div class="main-content-wrapper">
+
+            <header class="top-navbar d-flex align-items-center justify-content-between">
+                
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <button class="sidebar-toggle m-0 p-0" onclick="toggleSidebar()" style="border: none; background: transparent; font-size: 28px; color: #0f172a; line-height: 1;">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex flex-column justify-content-center">
+                        <h2 class="page-title m-0" style="line-height: 1;">
+                            {% if request.resolver_match.url_name == 'resident_dashboard' %}
+                                Dashboard
+                            {% elif request.resolver_match.url_name == 'raise_complaint' %}
+                                Raise Complaint
+                            {% elif request.resolver_match.url_name == 'admin_dashboard' %}
+                                Admin Dashboard
+                            {% elif request.resolver_match.url_name == 'worker_dashboard' %}
+                                Worker Dashboard
+                            {% elif request.resolver_match.url_name == 'complaints_log' %}
+                                Complaints
+                            {% elif request.resolver_match.url_name == 'book_service' %}
+                                Book a Service
+                            {% elif request.resolver_match.url_name == 'my_services' %}
+                                Requested Service
+                            {% elif request.resolver_match.url_name == 'alerts' %}
+                                Alerts
+                            {% elif request.resolver_match.url_name == 'profile' %}
+                                My Profile
+                            {% elif request.resolver_match.url_name == 'change_password' %}
+                                Change Password
+                            {% elif request.resolver_match.url_name == 'verify_password_otp' %}
+                                Verify OTP
+                            {% elif request.resolver_match.url_name == 'settings' %}
+                                Settings
+                            {% else %}
+                                Fixora
+                            {% endif %}
+                        </h2>
+
+                        {% if request.resolver_match.url_name == 'book_service' %}
+                            <p class="text-muted m-0 mt-1 d-none d-md-block" style="font-size: 13px; font-weight: 500;">Schedule a service at your convenience</p>
+                        {% elif request.resolver_match.url_name == 'raise_complaint' %}
+                            <p class="text-muted m-0 mt-1 d-none d-md-block" style="font-size: 13px; font-weight: 500;">Report your maintenance issue</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="navbar-actions d-flex align-items-center m-0">
+                    
+                    <form method="GET" class="search-box d-none d-md-flex align-items-center me-3">
+                        <i class="bi bi-search"></i>
+                        <input type="text" name="search" placeholder="Search" value="{{ request.GET.search }}" onkeyup="this.form.submit()">
+                        <button type="submit" class="search-btn">Search</button>
+                    </form>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="notification-bell m-0 position-relative">
+                            <a href="{% url 'alerts' %}" class="text-secondary text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
+                                <i class="bi bi-bell"></i>
+                                <!-- Django injects the red bubble dynamically -->
+                                {% if unread_alerts_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" style="font-size: 0.65rem; padding: 0.25em 0.4em;">
+                                    {{ unread_alerts_count }}
+                                </span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        
+                        <div class="dropdown m-0">
+                            <a href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration:none; cursor:pointer;">
+                                {% if user.profile_image %}
+                                    <img src="{{ user.profile_image.url }}" class="rounded-circle shadow-sm" width="40" height="40" style="object-fit: cover;">
+                                {% else %}
+                                    <i class="bi bi-person-circle" style="font-size:32px; color:#2563EB;"></i>
+                                {% endif %}
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown" style="border-radius:12px; min-width:220px;">
+                                <li class="px-3 py-2 border-bottom">
+                                    <h6 class="mb-0 fw-bold">{{ user.username|capfirst }}</h6>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </li>
+                                <li><a class="dropdown-item py-2" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i> My Profile</a></li>
+                                <li><a class="dropdown-item py-2" href="{% url 'settings' %}"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger py-2" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </header>
+
+            <main class="content-body">
+                {% block content %}
+                {% endblock %}
+            </main>
+
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/base.js' %}"></script>
+</body>
+
+</html>

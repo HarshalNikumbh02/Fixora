@@ -1,0 +1,173 @@
+{% extends 'file/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="card p-4 border-0 shadow-sm animate-fade-in" style="border-radius: 15px; background: white;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <div class="d-flex gap-2 flex-wrap" id="logFilters">
+            <button class="btn filter-tab active" onclick="filterLogs('all')">All Logged ({{ complaints|length }})</button>
+            <button class="btn filter-tab" onclick="filterLogs('pending')">Pending</button>
+            <button class="btn filter-tab" onclick="filterLogs('in_progress')">In Progress</button>
+            <button class="btn filter-tab" onclick="filterLogs('completed')">Completed</button>
+        </div>
+
+        <a href="{% url 'raise_complaint' %}"
+            class="btn btn-primary py-2 px-4 fw-semibold d-inline-flex align-items-center gap-2"
+            style="border-radius: 10px; background: #2563eb; border: none; height: 42px;">
+            <i class="bi bi-plus-lg"></i> Raise New Complaint
+        </a>
+    </div>
+
+    <div class="table-responsive mt-2" style="max-height: 600px; overflow-y: auto;">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light position-sticky top-0" style="z-index: 10; background: #f8fafc;">
+                <tr>
+                    <th class="border-0 py-3" style="min-width: 250px;">Issue Details</th>
+                    <th class="border-0 py-3">Category</th>
+                    <th class="border-0 py-3">Priority</th>
+                    <th class="border-0 py-3">Location</th>
+                    <th class="border-0 py-3">Date Raised</th>
+                    <th class="border-0 py-3 text-end">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if complaints %}
+                    {% for item in complaints %}
+                    <tr class="complaint-log-row" data-status="{{ item.status }}">
+                        <td>
+                            <div class="fw-bold text-dark mb-1" style="font-size: 15px;">
+                                {{ item.title }}
+                            </div>
+
+                            {% if item.assigned_worker %}
+                                <div class="mt-2">
+                                    <div class="text-success fw-semibold mb-1" style="font-size: 12px;">
+                                        <i class="bi bi-person-workspace me-1"></i> Worker Assigned
+                                    </div>
+                                    <div class="text-muted" style="font-size: 12px;">
+                                        <strong>{{ item.assigned_worker.username }}</strong> ({{ item.assigned_worker.phone }})
+                                    </div>
+                                </div>
+                                
+                                {% if item.status == 'completed' %}
+                                    <div class="mt-2 p-2 rounded-3 bg-light border border-success-subtle">
+                                        <div class="text-success fw-bold mb-1" style="font-size: 12px;"><i class="bi bi-check-circle-fill me-1"></i> Resolution Log</div>
+                                        {% if item.worker_notes %}
+                                            <div class="text-muted" style="font-size: 11px; line-height: 1.4;">{{ item.worker_notes }}</div>
+                                        {% endif %}
+                                        {% if item.completion_image %}
+                                            <a href="{{ item.completion_image.url }}" target="_blank" class="d-inline-block mt-2">
+                                                <img src="{{ item.completion_image.url }}" alt="Resolution Proof" style="height: 35px; width: 35px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                            {% else %}
+                                <div class="mt-2 small text-muted" style="font-size: 12px;">
+                                    <i class="bi bi-hourglass-split me-1"></i> Waiting for assignment
+                                </div>
+                            {% endif %}
+                        </td>
+                        
+                        <td><span class="badge bg-light text-secondary text-capitalize px-3 py-2 border">{{ item.category }}</span></td>
+                        
+                        <td>
+                            {% if item.priority == 'high' %}
+                                <span class="fw-bold text-capitalize d-inline-flex align-items-center gap-1" style="font-size: 13px; color: #ef4444;">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ item.get_priority_display }}
+                                </span>
+                            {% elif item.priority == 'medium' %}
+                                <span class="fw-bold text-capitalize" style="font-size: 13px; color: #ea580c;">
+                                    {{ item.get_priority_display }}
+                                </span>
+                            {% else %}
+                                <span class="fw-bold text-capitalize" style="font-size: 13px; color: #16a34a;">
+                                    {{ item.get_priority_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="text-muted" style="font-size: 14px;"><i class="bi bi-geo-alt me-1"></i> {{ item.location|default:"-" }}</td>
+                        
+                        <td>
+                            <div class="text-dark fw-medium" style="font-size: 14px;">{{ item.created_at|date:"d M Y" }}</div>
+                            <div class="text-muted" style="font-size: 12px;">{{ item.created_at|date:"g:i A" }}</div>
+                        </td>
+                        
+                        <td class="text-end">
+                            <span class="status-badge {% if item.status == 'pending' %}pending{% elif item.status == 'in_progress' %}in-progress{% else %}completed{% endif %}">
+                                {{ item.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5 fw-medium">No logged records found under your profile timeline.</td>
+                    </tr>
+                {% endif %}
+                
+                <tr id="emptyStateRow" style="display: none;">
+                    <td colspan="6" class="text-center py-5">
+                        <i class="bi bi-inboxes text-muted mb-2 d-block" style="font-size: 32px;"></i>
+                        <p class="text-muted fw-medium mb-0">No complaints match this filter.</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .filter-tab {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 8px 18px;
+        background: #f1f5f9;
+        color: #475569;
+        border: none;
+        transition: 0.2s ease;
+    }
+
+    .filter-tab:hover,
+    .filter-tab.active {
+        background: #2563eb;
+        color: white;
+    }
+</style>
+
+<script>
+    function filterLogs(status) {
+        // Toggle Active state styles on tabs
+        const tabs = document.querySelectorAll('#logFilters .filter-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+
+        const rows = document.querySelectorAll('.complaint-log-row');
+        let visibleCount = 0;
+
+        // Loop through and hide/show based on status
+        rows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            if (status === 'all' || rowStatus === status) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Trigger dynamic empty state if the filter yields 0 results
+        const emptyState = document.getElementById('emptyStateRow');
+        if (emptyState) {
+            if (visibleCount === 0) {
+                emptyState.style.display = '';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+    }
+</script>
+{% endblock %}

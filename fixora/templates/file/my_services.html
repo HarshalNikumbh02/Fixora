@@ -1,0 +1,302 @@
+{% extends 'file/base.html' %}
+{% load static %}
+
+{% block title %}My Services - Fixora{% endblock %}
+
+{% block content %}
+
+
+<div class="container-fluid ">
+
+    {% if services %}
+
+    <div class="row g-4">
+
+        {% for service in services %}
+
+        <div class="col-lg-6">
+
+            <div class="service-card">
+
+                <div class="service-top">
+
+                    <div>
+                        <h4 class="service-title">
+                            {{ service.get_category_display }}
+                        </h4>
+
+                        <p class="service-date">
+                            <i class="bi bi-calendar-event"></i>
+                            {{ service.created_at|date:"d M Y • h:i A" }}
+                        </p>
+                    </div>
+
+                    <span class="service-status
+                        {% if service.status == 'pending' %}
+                            pending
+                        {% elif service.status == 'assigned' %}
+                            assigned
+                        {% elif service.status == 'in_progress' %}
+                            progress
+                        {% elif service.status == 'completed' %}
+                            completed
+                        {% endif %}
+                    ">
+                        {{ service.get_status_display }}
+                    </span>
+
+                </div>
+
+                <div class="service-body">
+
+                    <div class="service-info">
+                        <i class="bi bi-geo-alt"></i>
+                        {{ service.location }}
+                    </div>
+
+                    {% if service.preferred_date %}
+                    <div class="service-info">
+                        <i class="bi bi-clock"></i>
+                        {{ service.preferred_date }}
+                        {% if service.preferred_time_slot %}
+                            • {{ service.preferred_time_slot }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if service.additional_notes %}
+                    <div class="service-note">
+                        {{ service.additional_notes }}
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <div class="tracking-container">
+
+                    <div class="tracking-step active">
+                        <div class="step-dot"></div>
+                        <span>Booked</span>
+                    </div>
+
+                    <div class="tracking-line"></div>
+
+                    <div class="tracking-step
+                        {% if service.status == 'assigned' or service.status == 'in_progress' or service.status == 'completed' %}
+                        active
+                        {% endif %}
+                    ">
+                        <div class="step-dot"></div>
+                        <span>Assigned</span>
+                    </div>
+
+                    <div class="tracking-line"></div>
+
+                    <div class="tracking-step
+                        {% if service.status == 'in_progress' or service.status == 'completed' %}
+                        active
+                        {% endif %}
+                    ">
+                        <div class="step-dot"></div>
+                        <span>Working</span>
+                    </div>
+
+                    <div class="tracking-line"></div>
+
+                    <div class="tracking-step
+                        {% if service.status == 'completed' %}
+                        active
+                        {% endif %}
+                    ">
+                        <div class="step-dot"></div>
+                        <span>Completed</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-service-box">
+
+        <img src="{% static 'images/home.png' %}" class="empty-img">
+
+        <h3>No Services Booked Yet</h3>
+
+        <p>
+            Your booked services will appear here.
+        </p>
+
+        <a href="{% url 'book_service' %}" class="btn-book-service-now">
+            Book a Service
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<style>
+
+.service-card{
+    background:white;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.05);
+    transition:0.3s ease;
+}
+
+.service-card:hover{
+    transform:translateY(-4px);
+}
+
+.service-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:20px;
+}
+
+.service-title{
+    font-size:22px;
+    font-weight:700;
+    color:#0f172a;
+    margin-bottom:8px;
+}
+
+.service-date{
+    color:#64748b;
+    font-size:14px;
+}
+
+.service-status{
+    padding:8px 16px;
+    border-radius:50px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.pending{
+    background:#fff7ed;
+    color:#ea580c;
+}
+
+.assigned{
+    background:#eff6ff;
+    color:#2563eb;
+}
+
+.progress{
+    background:#ede9fe;
+    color:#7c3aed;
+}
+
+.completed{
+    background:#ecfdf5;
+    color:#16a34a;
+}
+
+.service-body{
+    margin-bottom:25px;
+}
+
+.service-info{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+    color:#334155;
+    font-size:15px;
+}
+
+.service-note{
+    background:#f8fafc;
+    padding:15px;
+    border-radius:12px;
+    margin-top:15px;
+    color:#475569;
+}
+
+.tracking-container{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:25px;
+}
+
+.tracking-step{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    position:relative;
+}
+
+.step-dot{
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    background:#cbd5e1;
+}
+
+.tracking-step.active .step-dot{
+    background:#2563eb;
+}
+
+.tracking-step span{
+    font-size:12px;
+    color:#64748b;
+    font-weight:600;
+}
+
+.tracking-line{
+    flex:1;
+    height:3px;
+    background:#e2e8f0;
+    margin:0 5px;
+    margin-bottom:20px;
+}
+
+.empty-service-box{
+    background:white;
+    border-radius:25px;
+    padding:60px 30px;
+    text-align:center;
+    box-shadow:0 8px 20px rgba(0,0,0,0.05);
+}
+
+.empty-img{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    object-fit:cover;
+    margin-bottom:20px;
+}
+
+.btn-book-service-now{
+    display:inline-block;
+    margin-top:20px;
+    background:#2563eb;
+    color:white;
+    padding:12px 24px;
+    border-radius:12px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.btn-book-service-now:hover{
+    background:#1d4ed8;
+    color:white;
+}
+
+</style>
+
+{% endblock %}

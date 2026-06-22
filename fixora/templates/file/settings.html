@@ -1,0 +1,118 @@
+{% extends 'file/base.html' %}
+{% load static %}
+
+{% block title %}System Settings - Fixora{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/settings.css' %}">
+<div class="container-fluid">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} py-2 border-0 shadow-sm"
+        style="border-radius: 10px;">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Settings</h3>
+            <p class="text-muted mb-0">Manage your account and preferences</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ============================================== -->
+        <!-- OPTION 1: ACCOUNT SECURITY (VISIBLE TO EVERYONE) -->
+        <!-- ============================================== -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4" style="background: white;">
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-primary">
+                        <i class="bi bi-shield-lock-fill fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0" style="color: #0f172a;">Account Security</h5>
+                </div>
+
+                <p class="text-muted small mb-4">Update your password and secure your Fixora account credentials.</p>
+
+                <div class="d-flex flex-column gap-3 mt-auto">
+                    <a href="{% url 'change_password' %}" class="btn btn-primary fw-semibold"
+                        style="background: #2563eb; border: none; border-radius: 10px; height: 48px; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-key-fill me-2"></i> Change Password
+                    </a>
+
+                    <a href="{% url 'send_password_otp' %}" class="btn btn-light text-danger fw-semibold"
+                        style="border: 1px solid #fee2e2; background: #fef2f2; border-radius: 10px; height: 48px; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-envelope-exclamation-fill me-2"></i> Reset via Email OTP
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- OPTION 2: PLATFORM CONTROLS (SUPERADMIN ONLY)  -->
+        <!-- ============================================== -->
+        {% if user.role == 'superadmin' %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4" style="background: white;">
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="p-3 bg-dark bg-opacity-10 rounded-3 text-dark">
+                        <i class="bi bi-sliders fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0" style="color: #0f172a;">Platform Preferences</h5>
+                </div>
+
+                <p class="text-muted small mb-4">Master controls for the Fixora multi-tenant architecture.</p>
+
+                <div class="d-flex flex-column gap-3 mt-auto">
+
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3"
+                        style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <div>
+                            <h6 class="mb-1 fw-bold" style="font-size: 14px; color: #1e293b;">Global Maintenance Mode
+                            </h6>
+                            <span class="text-muted" style="font-size: 12px;">Pause all resident logins
+                                temporarily</span>
+                        </div>
+
+                        <form method="POST" action="{% url 'toggle_maintenance' %}" class="d-flex align-items-center">
+                            {% csrf_token %}
+                            <div class="maintenance-slider-container">
+                                <input type="checkbox" name="maintenance_check" id="mSwitch"
+                                    onchange="this.form.submit()" {% if maintenance_active %}checked{% endif %}>
+                                <label for="mSwitch" class="slider-label"></label>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3"
+                        style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <div>
+                            <h6 class="mb-1 fw-bold" style="font-size: 14px; color: #1e293b;">System Error Logs</h6>
+                            <span class="text-muted" style="font-size: 12px;">Download recent backend server
+                                traces</span>
+                        </div>
+
+                        <a href="{% url 'download_logs' %}" class="btn btn-sm btn-dark px-3 fw-semibold"
+                            style="border-radius: 8px;">
+                            <i class="bi bi-download me-1"></i> Logs
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

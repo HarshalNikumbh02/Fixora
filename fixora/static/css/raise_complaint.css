@@ -1,0 +1,97 @@
+.filter-tab {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 6px 16px;
+        background: #f1f5f9;
+        color: #475569;
+        border: none;
+        transition: 0.2s ease;
+    }
+
+    .filter-tab:hover,
+    .filter-tab.active {
+        background: #2563eb;
+        color: white;
+    }
+
+    /* BASE PILL LAYOUT */
+.priority-btn {
+    flex: 1;
+    min-width: 90px;
+    max-width: 130px;
+    height: 38px;
+    border-radius: 50px !important; /* Forces perfect pill shapes like screenshot */
+    font-size: 15px;
+    font-weight: 500;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth hardware accelerated motion */
+    cursor: pointer;
+}
+
+/* --- LOW PRIORITY STATUS STATES --- */
+.priority-btn.p-low {
+    border: 1.5px solid #22c55e;
+    color: #16a34a;
+    background-color: #f0fdf4;
+}
+/* Hover effect: darkens color scheme slightly and adds soft elevation shadow */
+.priority-btn.p-low:hover {
+    background-color: #dcfce7;
+    border-color: #15803d;
+    color: #14532d;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+    transform: translateY(-1px);
+}
+.priority-btn.p-low.active {
+    background-color: #bbf7d0 !important;
+    border-color: #16a34a !important;
+    color: #14532d !important;
+    font-weight: 600;
+}
+
+/* --- MEDIUM PRIORITY STATUS STATES --- */
+.priority-btn.p-medium {
+    border: 1.5px solid #f97316;
+    color: #ea580c;
+    background-color: #fff7ed;
+}
+/* Hover effect: deep orange rich profile transformation */
+.priority-btn.p-medium:hover {
+    background-color: #ffedd5;
+    border-color: #c2410c;
+    color: #7c2d12;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+    transform: translateY(-1px);
+}
+.priority-btn.p-medium.active {
+    background-color: #fed7aa !important;
+    border-color: #ea580c !important;
+    color: #7c2d12 !important;
+    font-weight: 600;
+}
+
+/* --- HIGH PRIORITY STATUS STATES --- */
+.priority-btn.p-high {
+    border: 1.5px solid #ef4444;
+    color: #dc2626;
+    background-color: #fef2f2;
+}
+/* Hover effect: stark urgent interactive red overlay values */
+.priority-btn.p-high:hover {
+    background-color: #fee2e2;
+    border-color: #b91c1c;
+    color: #7f1d1d;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+    transform: translateY(-1px);
+}
+.priority-btn.p-high.active {
+    background-color: #fca5a5 !important;
+    border-color: #dc2626 !important;
+    color: #7f1d1d !important;
+    font-weight: 600;
+}
