@@ -89,11 +89,23 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">4. Location</label>
-                    <input type="text" name="location" class="form-control" style="border-radius: 10px; height: 45px;"
-                        placeholder="e.g. Tower A, Flat 101" required>
-                </div>
+              
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">4. Location
+                            details</label>
+
+                        <select name="location" class="form-control form-select"
+                            style="border-radius: 10px; height: 48px; border-color: #cbd5e1; font-size: 14px;" required>
+                            <option value="" disabled selected>Select which flat needs service</option>
+                            {% for membership in memberships %}
+                            <option value="{{ membership.society.name }} - Flat {{ membership.flat_number }}">
+                                {{ membership.society.name }} (Flat {{ membership.flat_number }})
+                            </option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+            
 
                 <div class="mb-4">
                     <label class="form-label fw-bold" style="font-size: 15px; color: #0f172a;">5. Additional notes <span
@@ -126,11 +138,10 @@
                     </div>
                 </div>
                 <div class="mt-5 pt-4 border-top d-flex align-items-center">
-                    <a href="{% url 'resident_dashboard' %}" 
-                       class="btn btn-light text-secondary px-4 fw-semibold" 
-                       style="border-radius: 10px; height: 45px; display: inline-flex; align-items: center; border: 1px solid #e2e8f0; transition: all 0.2s ease;"
-                       onmouseover="this.style.backgroundColor='#f1f5f9'"
-                       onmouseout="this.style.backgroundColor='#f8fafc'">
+                    <a href="{% url 'resident_dashboard' %}" class="btn btn-light text-secondary px-4 fw-semibold"
+                        style="border-radius: 10px; height: 45px; display: inline-flex; align-items: center; border: 1px solid #e2e8f0; transition: all 0.2s ease;"
+                        onmouseover="this.style.backgroundColor='#f1f5f9'"
+                        onmouseout="this.style.backgroundColor='#f8fafc'">
                         <i class="bi bi-arrow-left me-2"></i> Cancel & Return
                     </a>
                 </div>

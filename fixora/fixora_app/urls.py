@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
 
@@ -50,6 +51,8 @@ urlpatterns = [
     path('change-password/',views.change_password,name='change_password'),
     path('send-password-otp/', views.send_password_otp, name='send_password_otp'),
     path('verify-password-otp/', views.verify_password_otp, name='verify_password_otp'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
 
     # Superadmin Master Paths
     path('dashboard/superadmin/', views.superadmin_dashboard, name='superadmin_dashboard'),
@@ -62,4 +65,10 @@ urlpatterns = [
 
     path('dashboard/analytics/', views.superadmin_analytics_view, name='superadmin_analytics'),
     path('api/analytics-data/', views.get_analytics_data, name='get_analytics_data'),
+    path('manage/membership/<int:membership_id>/edit/', views.edit_membership, name='edit_membership'),
+    path('manage/membership/<int:membership_id>/delete/', views.delete_membership, name='delete_membership'),
+
+    #password reset
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='file/password_reset_confirm.html'), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='file/password_reset_complete.html'), name='password_reset_complete'),
 ]

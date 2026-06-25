@@ -60,10 +60,11 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'fixora_app.context_processors.unread_alerts',
+                'fixora_app.context_processors.alert_notifications'
             ],
         },
     },
@@ -87,9 +88,9 @@ DATABASES = {
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
+    #{
+    #    'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    #},
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
@@ -139,7 +140,9 @@ EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = 'hnikumbh17@gmail.com'
 
-EMAIL_HOST_PASSWORD = 'zsnr jmzd aqmg xttd'
+EMAIL_HOST_PASSWORD = 'hxdytvneyilbveki'
+
+PASSWORD_RESET_TIMEOUT = 300
 
 LOG_FILE_PATH = os.path.join(BASE_DIR, 'debug.log')
 

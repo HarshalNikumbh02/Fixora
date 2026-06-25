@@ -1,131 +1,149 @@
+from urllib import request
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib import messages
 from django.core.cache import cache
-from .models import User, Alert, Complaint, ServiceBooking, Society
+from .models import User, Alert, Complaint, ServiceBooking, Society, SocietyMembership
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, FileResponse
 from django.db.models import Q, IntegerField, When, Case, Count
 import random, os
 from django.conf import settings
 from django.core.mail import send_mail
+from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+from django.shortcuts import get_object_or_404
 
 def home_page(request):
     # This renders strictly the public informational landing dashboard page layout
     return render(request, 'file/home.html')
 
 def login_page(request):
-
     if request.method == 'POST':
-
-        username_val = request.POST.get('username')
+        login_id = request.POST.get('login_id', '').strip()
         password_val = request.POST.get('password')
 
-        user = authenticate(
-            request,
-            username=username_val,
-            password=password_val
+        # 1. STRICT SEARCH: Only check Email OR Phone (Username is ignored)
+        matching_users = User.objects.filter(
+            Q(email__iexact=login_id) | 
+            Q(phone=login_id)
         )
 
+        user = None
+        for account in matching_users:
+            # We still pass account.username to authenticate() because Django requires it internally, 
+            # but the user typed their email/phone to get here.
+            user = authenticate(request, username=account.username, password=password_val)
+            if user is not None:
+                break 
+
         if user is not None:
-
             login(request, user)
-
-            # SUPERADMIN - MASTER OF ALL DASHBOARDS
             if user.role == 'superadmin':
                 return redirect('superadmin_dashboard')
-
-            # ADMIN
-            if user.role == 'admin':
+            elif user.role == 'admin':
                 return redirect('admin_dashboard')
-
-            # WORKER
             elif user.role == 'worker':
                 return redirect('worker_dashboard')
-
-            # RESIDENT
             else:
                 return redirect('resident_dashboard')
-
         else:
-            messages.error(request, "Invalid username or password.")
+            messages.error(request, "Invalid Email/Phone or Password. Please try again.")
             return redirect('login')
 
     return render(request, 'file/login.html')
 
 @login_required
 def register_page(request):
-
     if request.user.role != 'admin':
         return redirect('resident_dashboard')
 
     if request.method == 'POST':
-
-        # Strip whitespace to prevent accidental spaces ruining the data
-        username = request.POST.get('username', '').strip()
+        # Capture Full Name instead of username
+        full_name = request.POST.get('full_name', '').strip()
         email = request.POST.get('email', '').strip()
         phone = request.POST.get('phone', '').strip()
         role = request.POST.get('role')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+        flat_number = request.POST.get('flat_number', '').strip()
+        worker_id = request.POST.get('worker_id', '').strip()
 
-        # 1. Password Validation
+        # Smart Lookup by Email OR Phone
+        query = Q(email__iexact=email)
+        if phone and len(phone) == 10:
+            query |= Q(phone=phone)
+            
+        existing_user = User.objects.filter(query).first()
+
+        if existing_user:
+            # Link existing user without touching password
+            if role == 'resident' and SocietyMembership.objects.filter(user=existing_user, society=request.user.society, flat_number=flat_number).exists():
+                messages.error(request, f"This account is already registered in Flat {flat_number}.")
+                return redirect('register')
+                
+            if role == 'worker' and SocietyMembership.objects.filter(user=existing_user, society=request.user.society, worker_id=worker_id).exists():
+                messages.error(request, f"This account is already registered as Worker {worker_id}.")
+                return redirect('register')
+            
+            SocietyMembership.objects.create(
+                user=existing_user,
+                society=request.user.society,
+                flat_number=flat_number if role == 'resident' else None,
+                worker_id=worker_id if role == 'worker' else None,
+                role=role
+            )
+            messages.success(request, f"Account '{existing_user.first_name}' successfully linked to the society!")
+            return redirect('manage_users')
+
+        # Create New User Validations
         if password != confirm_password:
             messages.error(request, "Passwords do not match!")
             return redirect('register')
 
-        # 2. Username Uniqueness
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "This username is already taken. Please choose another.")
-            return redirect('register')
-
-        # 3. Email Format & Uniqueness
-        from django.core.validators import validate_email
-        from django.core.exceptions import ValidationError
-        try:
-            validate_email(email)
-        except ValidationError:
-            messages.error(request, "Please enter a valid email address.")
-            return redirect('register')
-
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "An account with this email address already exists.")
-            return redirect('register')
-
-        # 4. Phone Number Format & Uniqueness
         if not phone.isdigit() or len(phone) != 10:
             messages.error(request, "Phone number must be exactly 10 digits.")
             return redirect('register')
 
         if User.objects.filter(phone=phone).exists():
-            messages.error(request, "This phone number is already registered to another user.")
+            messages.error(request, "This phone number is already registered.")
             return redirect('register')
 
-        # Create user if all validations pass
+        # Create the Global User using Email as the internal username, and Full Name in first_name
         user = User.objects.create_user(
-            username=username,
+            username=email,          # Secretly mapping username to email to satisfy Django's core
             email=email,
             password=password,
+            first_name=full_name,    # Storing their actual Full Name here!
             role=role,
             phone=phone,
             society=request.user.society
         )
-
         user.save()
 
-        messages.success(request, f"User {username} created successfully!")
+        wing = request.POST.get('wing', '').strip().upper() # .upper() makes 'a' turn into 'A' uniformly!
+        flat_number = request.POST.get('flat_number', '').strip()
+        SocietyMembership.objects.create(
+            user=user,
+            society=request.user.society,
+            wing=wing if role == 'resident' else None,
+            flat_number=flat_number if role == 'resident' else None,
+            worker_id=worker_id if role == 'worker' else None,
+            role=role
+        )
 
+        messages.success(request, f"New {role} created successfully!")
         return redirect('manage_users')
 
     return render(request, 'file/register.html')
 
 @login_required
 def resident_dashboard(request):
-    user_complaints = Complaint.objects.filter(
-    resident__society=request.user.society
-)
+    user_complaints = Complaint.objects.filter(resident=request.user)
     search_query = request.GET.get('search')
     if search_query:
         user_complaints = user_complaints.filter(
@@ -135,25 +153,24 @@ def resident_dashboard(request):
             Q(description__icontains=search_query)
         )
     user_complaints = user_complaints.order_by('-created_at')
+    memberships = SocietyMembership.objects.filter(user=request.user, role='resident')
     context = {
-        'complaints': user_complaints
+        'complaints': user_complaints,
+        'memberships': memberships
     }
     return render(request, 'file/resident_dashboard.html', context)
 
 @login_required
 def complaints_log_page(request):
-    # This renders strictly your full history log dashboard list on sidebar click
-    user_complaints = Complaint.objects.filter(
-    resident__society=request.user.society).order_by('-created_at')
-    context = {
-        'complaints': user_complaints,
-    }
-    return render(request, 'file/complaints_log.html', context)
+    # Show complaints across all flats
+    user_complaints = Complaint.objects.filter(resident=request.user).order_by('-created_at')
+    return render(request, 'file/complaints_log.html', {'complaints': user_complaints})
 
 @login_required
 def raise_complaint_form(request):
-    # This renders exclusively your beautiful full-page form card layout block
-    return render(request, 'file/raise_complaint.html')
+    # Pass flats to the complaint form so they can select one
+    memberships = SocietyMembership.objects.filter(user=request.user, role='resident')
+    return render(request, 'file/raise_complaint.html', {'memberships': memberships})
 
 @login_required
 def admin_dashboard(request):
@@ -324,8 +341,9 @@ def raise_complaint_submit(request):
 
 @login_required
 def book_service_page(request):
-    # Renders your fresh new service layout wireframe structure
-    return render(request, 'file/book_service.html')
+    # Pass flats to the service form so they can select one
+    memberships = SocietyMembership.objects.filter(user=request.user, role='resident')
+    return render(request, 'file/book_service.html', {'memberships': memberships})
 
 @login_required
 def book_service_submit(request):
@@ -357,27 +375,21 @@ def book_service_submit(request):
 
 @login_required
 def my_services(request):
-
-    services = ServiceBooking.objects.filter(resident__society=request.user.society).order_by('-created_at')
-
-    context = {
-        'services': services
-    }
-
-    return render(request, 'file/my_services.html', context)
+    # Show services across all flats
+    services = ServiceBooking.objects.filter(resident=request.user).order_by('-created_at')
+    return render(request, 'file/my_services.html', {'services': services})
 
 @login_required
 def alerts(request):
-    # 1. Only fetch alerts belonging specifically to this user
-    alerts_data = Alert.objects.filter(user=request.user).order_by('-created_at')
-
-    # 2. Mark all unread alerts as read since the user is now looking at them
+    # 1. Fetch all alerts for this user, newest first
+    user_alerts = Alert.objects.filter(user=request.user).order_by('-created_at')
+    
+    # 2. Mark them all as read the moment they open this page!
     Alert.objects.filter(user=request.user, is_read=False).update(is_read=True)
-
+    
     context = {
-        'alerts_data': alerts_data
+        'alerts': user_alerts
     }
-
     return render(request, 'file/alerts.html', context)
 
 @login_required
@@ -428,25 +440,20 @@ def profile(request):
 
 @login_required
 def manage_users(request):
-
     if request.user.role != 'admin':
         return redirect('resident_dashboard')
-
-    residents = User.objects.filter(
-        society=request.user.society,
-        role='resident'
-    )
-
-    workers = User.objects.filter(
-        society=request.user.society,
-        role='worker'
-    )
-
+    selected_wing = request.GET.get('wing', '')
+    residents = SocietyMembership.objects.filter(society=request.user.society, role='resident')
+    active_wings = residents.exclude(wing__isnull=True).exclude(wing__exact='').values_list('wing', flat=True).distinct().order_by('wing')
+    if selected_wing:
+        residents = residents.filter(wing=selected_wing)
+    workers = SocietyMembership.objects.filter(society=request.user.society, role='worker')
     context = {
         'residents': residents,
-        'workers': workers,
+        'active_wings': active_wings,
+        'selected_wing': selected_wing,
+        'workers': workers, # <--- Added workers to the context!
     }
-
     return render(request, 'file/manage_users.html', context)
 
 @login_required
@@ -878,3 +885,161 @@ def superadmin_analytics_view(request):
     if request.user.role != 'superadmin':
         return redirect('dashboard_redirect')
     return render(request, 'file/superadmin_analytics.html')
+
+@login_required
+def edit_membership(request, membership_id):
+    # Fetch the exact membership record
+    membership = get_object_or_404(SocietyMembership, id=membership_id, society=request.user.society)
+    
+    if request.method == 'POST':
+        # Update flat number
+        new_flat = request.POST.get('flat_number')
+        if new_flat is not None: # Changed to 'is not None' so it can accept empty strings if needed
+            membership.flat_number = new_flat
+            
+        wing = request.POST.get('wing', '').strip().upper() 
+        flat_number = request.POST.get('flat_number', '').strip()
+            
+            # 2. Assign it to the membership object:
+        membership.wing = wing if wing else None
+        membership.flat_number = flat_number
+            
+
+        # Update worker ID
+        new_worker_id = request.POST.get('worker_id')
+        if new_worker_id is not None:
+            membership.worker_id = new_worker_id
+            
+        membership.save()
+            
+        # Update user details (Name/Phone)
+        # Note: Because this updates the Global User, it updates their name everywhere.
+        user = membership.user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.save()
+
+        messages.success(request, "Resident details updated successfully.")
+        return redirect('manage_users') # Change to your actual user list URL
+
+    # If GET request, render the edit form (you'll need to create this simple HTML form)
+    return render(request, 'file/edit_membership.html', {'membership': membership})
+
+
+@login_required
+def delete_membership(request, membership_id):
+    if request.method == 'POST':
+        membership = get_object_or_404(SocietyMembership, id=membership_id, society=request.user.society)
+        
+        # We delete the MEMBERSHIP, not the User.
+        membership.delete()
+        
+        messages.success(request, "Resident has been removed from your society.")
+        return redirect('manage_users')
+    
+def forgot_password(request):
+    if request.method == 'POST':
+        # Check which form they submitted using a hidden input field we will add to the HTML
+        reset_method = request.POST.get('reset_method') 
+        
+        # ==========================================
+        # SCENARIO 1: THEY CHOSE PHONE OTP
+        # ==========================================
+        if reset_method == 'phone':
+            phone = request.POST.get('phone')
+            try:
+                user = User.objects.get(phone=phone) 
+                otp = str(random.randint(100000, 999999))
+                
+                request.session['reset_phone'] = phone
+                request.session['reset_otp'] = otp
+                
+                # Mock SMS output to your terminal
+                print("\n" + "="*30)
+                print(f"📱 MOCK SMS TO: {phone}")
+                print(f"🔑 YOUR FIXORA OTP IS: {otp}")
+                print("="*30 + "\n")
+                
+                messages.success(request, 'OTP sent successfully! Please check your phone.')
+                return redirect('verify_otp')
+                
+            except User.DoesNotExist:
+                messages.error(request, 'No account found with this phone number.')
+                
+       # ==========================================
+        # SCENARIO 2: THEY CHOSE EMAIL
+        # ==========================================
+        elif reset_method == 'email':
+            email = request.POST.get('email')
+            try:
+                user = User.objects.get(email=email)
+                
+                # 1. Generate the secure reset token and User ID
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                
+                # 2. Build the reset link (Fallback to local IP if reverse fails)
+                try:
+                    reset_url = request.build_absolute_uri(reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token}))
+                except:
+                    reset_url = f"http://127.0.0.1:8000/reset/{uid}/{token}/"
+                
+                # 3. MOCK EMAIL: Print to terminal so you can test it instantly!
+                print("\n" + "="*30)
+                print(f"📧 MOCK EMAIL TO: {email}")
+                print(f"🔗 CLICK THIS LINK TO RESET: {reset_url}")
+                print("="*30 + "\n")
+
+                # 4. Try sending the real email via Gmail
+                try:
+                    send_mail(
+                        'Fixora - Password Reset',
+                        f'Hello {user.first_name},\n\nClick here to reset your password:\n{reset_url}\n\nIf you did not request this, please ignore this email.',
+                        'hnikumbh17@gmail.com', # Your sending email
+                        [user.email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    print(f"⚠️ Real Email Failed. Error: {e}")
+                
+                messages.success(request, 'Password reset link sent! Please check your email inbox.')
+                return redirect('login') 
+                
+            except User.DoesNotExist:
+                messages.error(request, 'No account found with this email address.')
+
+    return render(request, 'file/forgot_password.html')
+
+
+def verify_otp(request):
+    # If they try to visit this page without entering a phone number first, kick them back
+    if 'reset_phone' not in request.session:
+        return redirect('forgot_password')
+        
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Retrieve the generated OTP and Phone from the session
+        saved_otp = request.session.get('reset_otp')
+        phone = request.session.get('reset_phone')
+        
+        if entered_otp == saved_otp:
+            if new_password == confirm_password:
+                # Find the user and save the new password
+                user = User.objects.get(phone=phone)
+                user.set_password(new_password) # This safely encrypts the new password!
+                user.save()
+                
+                # Delete the temporary session data so it can't be used again
+                del request.session['reset_phone']
+                del request.session['reset_otp']
+                
+                messages.success(request, 'Password reset successfully! You can now log in.')
+                return redirect('login') # Assuming your login url is named 'login'
+            else:
+                messages.error(request, 'Passwords do not match. Try again.')
+        else:
+            messages.error(request, 'Invalid OTP. Please check your text messages.')
+            
+    return render(request, 'file/verify_otp.html')

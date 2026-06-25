@@ -14,10 +14,22 @@
 {% endfor %}
 {% endif %}
 <div class="welcome-banner">
-    <h1>Hi {{ user.username|capfirst }} 👋</h1>
-    <p class="society-name">
-        {{ user.society.name }}
-    </p>
+    <h1>Hi {{ user.first_name }} 👋</h1>
+    <div class="d-flex gap-2 flex-wrap mt-2 mb-4">
+        {% for membership in memberships %}
+        <span class="badge bg-white text-dark border shadow-sm px-3 py-2" style="font-size: 14px;">
+            <p class="mb-0 text-muted">
+                <i class="bi bi-building text-primary me-1"></i>
+                {{ membership.society.name }}{% if membership.wing %} |
+                <span class="badge bg-secondary me-1">{{ membership.wing }}</span>
+                {% endif %}
+                <span class="text-muted">{{ membership.flat_number }}</span>
+            </p>
+        </span>
+        {% empty %}
+        <span class="badge bg-warning text-dark border px-3 py-2">No flats assigned yet</span>
+        {% endfor %}
+    </div>
 
     <div class="action-buttons-group">
         <a href="{% url 'raise_complaint' %}"
@@ -181,7 +193,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="complaintForm" action="{% url 'raise_complaint_submit' %}" enctype="multipart/form-data">
-            {% csrf_token %}
+                {% csrf_token %}
 
                 <!-- FIX: Hidden defaults so the modal payload structure matches your full-page schema requirements -->
                 <input type="hidden" name="priority" value="low">

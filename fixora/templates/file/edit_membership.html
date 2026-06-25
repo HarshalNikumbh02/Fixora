@@ -1,0 +1,45 @@
+{% extends 'file/base.html' %}
+{% block title %}Edit Resident - Fixora{% endblock %}
+
+{% block content %}
+<div class="container-fluid max-w-md mx-auto mt-4" style="max-width: 600px;">
+    <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h4 class="fw-bold mb-4">Edit Resident Details</h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">First Name</label>
+                <input type="text" name="first_name" class="form-control" value="{{ membership.user.first_name }}">
+            </div>
+
+            {% if membership.role == 'resident' %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold">Wing / Block</label>
+                    <!-- default_if_none:'' stops the word "None" from appearing if they didn't have a wing before! -->
+                    <input type="text" name="wing" class="form-control" value="{{ membership.wing|default_if_none:'' }}"
+                        placeholder="e.g. A, B, Tower 1">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold">Flat Number</label>
+                    <input type="text" name="flat_number" class="form-control" value="{{ membership.flat_number }}"
+                        placeholder="e.g. 101, 102">
+                </div>
+            </div>
+            {% elif membership.role == 'worker' %}
+            <div class="mb-4">
+                <label class="form-label text-muted small fw-bold">Worker ID</label>
+                <input type="text" name="worker_id" class="form-control" value="{{ membership.worker_id }}" required>
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                <a href="{% url 'manage_users' %}" class="btn btn-light w-50 fw-semibold">Cancel</a>
+                <button type="submit" class="btn btn-primary w-50 fw-semibold">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,15 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+
+
+ROLE_CHOICES = (
+    ('superadmin', 'Superadmin'),
+    ('admin', 'Admin'),
+    ('worker', 'Worker'),
+    ('resident', 'Resident'),
+)
+
 class Society(models.Model):
     name = models.CharField(max_length=200)
     address = models.TextField(blank=True, null=True)
@@ -11,6 +20,8 @@ class Society(models.Model):
 
 class User(AbstractUser):
 
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=10, unique=True, null=True, blank=True)
     ROLE_CHOICES = (
         ('superadmin', 'System Super Admin'),
         ('admin', 'Admin'),
@@ -237,3 +248,18 @@ class Alert(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.title}"
 
+
+class SocietyMembership(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    society = models.ForeignKey(Society, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    
+    # ADD THIS NEW FIELD:
+    wing = models.CharField(max_length=20, null=True, blank=True) 
+    
+    flat_number = models.CharField(max_length=20, null=True, blank=True)
+    worker_id = models.CharField(max_length=50, null=True, blank=True)
+    
+    class Meta:
+        # Prevent the same user from registering the exact same flat twice
+        unique_together = ('user', 'society', 'wing', 'flat_number')

@@ -45,44 +45,64 @@
                     <h5 class="fw-bold">
                         Residents
                     </h5>
+                    <form method="GET" class="d-flex align-items-center">
+                        <label class="me-2 text-muted small fw-bold">Filter by Wing:</label>
+                        <select name="wing" class="form-select form-select-sm" onchange="this.form.submit()"
+                            style="width: auto; cursor: pointer;">
+                            <option value="">All Wings</option>
+                            {% for w in active_wings %}
+                            <option value="{{ w }}" {% if w == selected_wing %}selected{% endif %}>Wing {{ w }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Resident</th>
+                                    <th>Flat Number</th>
+                                    <th class="text-end pe-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for membership in residents %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <h6 class="fw-bold mb-0">{{ membership.user.first_name }}</h6>
+                                        <small class="text-muted">{{ membership.user.email }}</small>
+                                    </td>
+                                    <td>
+                                        {% if membership.wing %}
+                                        <span class="badge bg-secondary">{{ membership.wing }}</span>
+                                        {% endif %}
+                                        {{ membership.flat_number }}
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{% url 'edit_membership' membership.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
 
-                    {% for resident in residents %}
-
-                    <div class="border rounded-3 p-3 mb-3">
-
-                        <div class="d-flex justify-content-between align-items-center">
-
-                            <div>
-
-                                <h6 class="fw-bold mb-1">
-                                    {{ resident.username }}
-                                </h6>
-
-                                <small class="text-muted">
-                                    {{ resident.email }}
-                                </small>
-
-                            </div>
-
-                            <span class="badge bg-primary">
-                                Resident
-                            </span>
-
-                        </div>
-
+                                            <form method="POST" action="{% url 'delete_membership' membership.id %}" onsubmit="return confirm('Remove this resident from the flat?');" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">No residents found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-
-                    {% empty %}
-
-                    <p class="text-muted">
-                        No residents found.
-                    </p>
-
-                    {% endfor %}
-
                 </div>
 
             </div>
@@ -100,42 +120,54 @@
                     </h5>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Worker</th>
+                                    <th>Phone</th>
+                                    <th class="text-end pe-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for membership in workers %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <h6 class="fw-bold mb-0">{{ membership.user.first_name }}</h6>
+                                        <small class="text-muted">{{ membership.user.email }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted d-block mb-1">{{ membership.user.phone }}</span>
+                                        {% if membership.worker_id %}
+                                            <span class="badge bg-primary text-white border border-primary-subtle px-2 py-1">
+                                                <i class="bi bi-person-badge me-1"></i> ID: {{ membership.worker_id }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{% url 'edit_membership' membership.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
 
-                    {% for worker in workers %}
-
-                    <div class="border rounded-3 p-3 mb-3">
-
-                        <div class="d-flex justify-content-between align-items-center">
-
-                            <div>
-
-                                <h6 class="fw-bold mb-1">
-                                    {{ worker.username }}
-                                </h6>
-
-                                <small class="text-muted">
-                                    {{ worker.email }}
-                                </small>
-
-                            </div>
-
-                            <span class="badge bg-warning text-dark">
-                                Worker
-                            </span>
-
-                        </div>
-
+                                            <form method="POST" action="{% url 'delete_membership' membership.id %}" onsubmit="return confirm('Remove this worker from the society?');" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">No workers found in this society.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-
-                    {% empty %}
-
-                    <p class="text-muted">
-                        No workers found.
-                    </p>
-
-                    {% endfor %}
-
                 </div>
 
             </div>

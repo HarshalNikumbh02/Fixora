@@ -1,0 +1,19 @@
+# 1. ENVIRONMENT VARIABLES
+.env
+
+# 2. LOCAL DATABASE 
+db.sqlite3
+
+# 3. VIRTUAL ENVIRONMENTS
+venv/
+env/
+.venv/
+
+# 4. PYTHON CACHE FILES
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 5. MEDIA UPLOADS
+media/

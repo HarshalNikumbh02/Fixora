@@ -4,7 +4,7 @@
 {% block title %}Complaints Log - Fixora{% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="{% static 'css/raise_complaint.css' %}">
+<link rel="stylesheet" href="{% static 'css/raise_complaint.css' %}">
 <div id="complaintFormAnchor" class="row g-4">
     <div class="col-12 col-lg-8">
         <div class="card p-4 shadow-sm border-0" style="border-radius: 15px; border: 2px solid #2563eb !important;">
@@ -46,6 +46,18 @@
                                 onclick="setPriority('high', this)">High</button>
                         </div>
                     </div>
+                </div>
+
+                <div class="mb-4"> <label class="form-label fw-bold" style="font-size: 16px; color: #0f172a;">3. Mention exact location</label>
+                    
+                    <select name="location" class="form-control form-select" style="border-radius: 10px; height: 48px; border-color: #cbd5e1;" required>
+                        <option value="" disabled selected>Select the flat</option>
+                        {% for membership in memberships %}
+                            <option value="{{ membership.society.name }} - Flat {{ membership.flat_number }}">
+                                {{ membership.society.name }} (Flat {{ membership.flat_number }})
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="mb-4">
