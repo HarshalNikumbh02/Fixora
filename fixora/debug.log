@@ -586,3 +586,14 @@ Traceback (most recent call last):
     raise NoReverseMatch(msg)
 django.urls.exceptions.NoReverseMatch: Reverse for 'forgot_password' not found. 'forgot_password' is not a valid view function or pattern name.
 ERROR 2026-06-25 22:22:42,433 log "GET /login/ HTTP/1.1" 500 121533
+ERROR 2026-06-26 01:12:03,124 log Internal Server Error: /forgot-password/
+Traceback (most recent call last):
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\fixora\fixora_app\views.py", line 991, in forgot_password
+    elif reset_method == 'email':
+         ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'reset_method' where it is not associated with a value
+ERROR 2026-06-26 01:12:03,126 log "GET /forgot-password/ HTTP/1.1" 500 70736

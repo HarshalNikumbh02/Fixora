@@ -10,7 +10,7 @@ from .models import User, Alert, Complaint, ServiceBooking, Society, SocietyMemb
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, FileResponse
 from django.db.models import Q, IntegerField, When, Case, Count
-import random, os
+import random, os, requests
 from django.conf import settings
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -938,32 +938,52 @@ def delete_membership(request, membership_id):
     
 def forgot_password(request):
     if request.method == 'POST':
-        # Check which form they submitted using a hidden input field we will add to the HTML
-        reset_method = request.POST.get('reset_method') 
+        # Check which form they submitted
+        reset_method = request.POST.get('reset_method')
         
-        # ==========================================
-        # SCENARIO 1: THEY CHOSE PHONE OTP
-        # ==========================================
+        # 1. MUST CHECK IF THEY CHOSE PHONE
         if reset_method == 'phone':
+            
+            # 2. DEFINE THE VARIABLES HERE (This fixes the yellow lines!)
             phone = request.POST.get('phone')
+            otp = str(random.randint(100000, 999999))
+            
+            # Save them to the session so the next page can verify them
+            request.session['reset_phone'] = phone
+            request.session['reset_otp'] = otp
+            
+            # ==========================================
+            # SEND REAL SMS VIA FAST2SMS
+            # ==========================================
+            fast2sms_api_key = "Q0rstHoIj3Uic7BvSWefCk4L9X5Gm1yFhRuVzOxE2KP6DdJMY8j1apMVD2ie6xdXkF7qczufoBAyGUm9"
+            
+            url = "https://www.fast2sms.com/dev/bulkV2"
+            
+            # Now 'phone' exists, so this will work perfectly!
+            clean_phone = phone[-10:] 
+            
+            querystring = {
+                "authorization": fast2sms_api_key,
+                "variables_values": otp, # Now 'otp' exists too!
+                "route": "otp",
+                "numbers": clean_phone
+            }
+            
+            headers = {
+                'cache-control': "no-cache"
+            }
+            
             try:
-                user = User.objects.get(phone=phone) 
-                otp = str(random.randint(100000, 999999))
+                response = requests.request("GET", url, headers=headers, params=querystring)
+                print(f"✅ Real SMS API Response: {response.text}")
                 
-                request.session['reset_phone'] = phone
-                request.session['reset_otp'] = otp
-                
-                # Mock SMS output to your terminal
-                print("\n" + "="*30)
-                print(f"📱 MOCK SMS TO: {phone}")
-                print(f"🔑 YOUR FIXORA OTP IS: {otp}")
-                print("="*30 + "\n")
-                
+                # Redirect the user to the OTP typing screen
                 messages.success(request, 'OTP sent successfully! Please check your phone.')
                 return redirect('verify_otp')
                 
-            except User.DoesNotExist:
-                messages.error(request, 'No account found with this phone number.')
+            except Exception as e:
+                print(f"⚠️ Real SMS Failed. Error: {e}")
+                messages.error(request, 'Failed to send OTP. Please try again.')
                 
        # ==========================================
         # SCENARIO 2: THEY CHOSE EMAIL
