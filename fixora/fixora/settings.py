@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-z@q#ryr$3+rr2h5+x1ckuink_)(mk$r#kc%v_&ccd33&)9)lh_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['https://fixora-app.onrender.com' , '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['fixora-app.onrender.com' , '127.0.0.1', 'localhost']
 
 
 # Application definition

@@ -1,0 +1,12 @@
+Admin:
+User id:- harshal
+Pass:- Harshal@2002
+
+User:- 
+User Id:- Purva
+Pass:- Purva@2003
+
+for downloading requirements
+py -m pip install -r requirements.txt
+
+zsnr jmzd aqmg xttd
