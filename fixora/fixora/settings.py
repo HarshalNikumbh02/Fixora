@@ -23,7 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-z@q#ryr$3+rr2h5+x1ckuink_)(mk$r#kc%v_&ccd33&)9)lh_'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+import os
+from dotenv import load_dotenv
+
+# Make sure dotenv is loaded so it can read your local .env file
+load_dotenv() 
+
+# This reads your .env file. If it sees 'True', it turns Debug ON.
+# If it can't find the .env file (like on the live Render server), it defaults to False.
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['fixora-app.onrender.com' , '127.0.0.1', 'localhost']
 

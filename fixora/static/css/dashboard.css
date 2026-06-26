@@ -54,7 +54,7 @@ body {
     border-right: 1px solid var(--border-color);
     height: 100vh;
     z-index: 50;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .brand-section {
@@ -455,11 +455,12 @@ body {
         top: 0;
         left: -260px;
         width: 260px;
-        height: 100vh;
+        height: 100dvh;
         z-index: 1050;
         background: #f8fafc;
         transition: 0.3s ease;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .sidebar.show { left: 0; }
