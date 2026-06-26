@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-z@q#ryr$3+rr2h5+x1ckuink_)(mk$r#kc%v_&ccd33&)9)lh_'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-import os
+import os, dj_database_url
 from dotenv import load_dotenv
 
 # Make sure dotenv is loaded so it can read your local .env file
@@ -86,10 +86,10 @@ WSGI_APPLICATION = 'fixora.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 
