@@ -597,3 +597,48 @@ Traceback (most recent call last):
          ^^^^^^^^^^^^
 UnboundLocalError: cannot access local variable 'reset_method' where it is not associated with a value
 ERROR 2026-06-26 01:12:03,126 log "GET /forgot-password/ HTTP/1.1" 500 70736
+ERROR 2026-06-28 15:28:18,051 log Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\fixora\fixora_app\views.py", line 31, in login_page
+    matching_users = User.objects.filter(
+                     ^^^^^^^^^^^^
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'fixora_app.User'
+ERROR 2026-06-28 15:28:18,061 log "POST /login/ HTTP/1.1" 500 76587
+ERROR 2026-06-28 15:28:48,098 log Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\fixora\fixora_app\views.py", line 31, in login_page
+    matching_users = User.objects.filter(
+                     ^^^^^^^^^^^^
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'fixora_app.User'
+ERROR 2026-06-28 15:28:48,102 log "POST /login/ HTTP/1.1" 500 76575
+ERROR 2026-06-28 15:30:05,360 log Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\fixora\fixora_app\views.py", line 31, in login_page
+    matching_users = User.objects.filter(
+                     ^^^^^^^^^^^^
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'fixora_app.User'
+ERROR 2026-06-28 15:30:05,362 log "POST /login/ HTTP/1.1" 500 76575

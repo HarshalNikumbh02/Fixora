@@ -16,8 +16,9 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 def home_page(request):
     # This renders strictly the public informational landing dashboard page layout
     return render(request, 'file/home.html')
