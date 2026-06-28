@@ -642,3 +642,47 @@ Traceback (most recent call last):
     )
 AttributeError: Manager isn't available; 'auth.User' has been swapped for 'fixora_app.User'
 ERROR 2026-06-28 15:30:05,362 log "POST /login/ HTTP/1.1" 500 76575
+ERROR 2026-06-28 15:37:12,943 log Internal Server Error: /upload-bulk-users/
+Traceback (most recent call last):
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\fixora\fixora_app\views.py", line 1111, in upload_bulk_users
+    return redirect('your_admin_dashboard_url_name')
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\shortcuts.py", line 51, in redirect
+    resolve_url(to, *args, **kwargs),
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\shortcuts.py", line 184, in resolve_url
+    return reverse(to, args=args, kwargs=kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\urls\resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'your_admin_dashboard_url_name' not found. 'your_admin_dashboard_url_name' is not a valid view function or pattern name.
+ERROR 2026-06-28 15:37:12,954 log "POST /upload-bulk-users/ HTTP/1.1" 500 93656
+ERROR 2026-06-28 15:55:48,354 log Internal Server Error: /upload-bulk-users/
+Traceback (most recent call last):
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Sarvadnya\Desktop\Society\fixora\fixora_app\views.py", line 1101, in upload_bulk_users
+    user = User.objects.create_user(
+        username=email,
+    ...<5 lines>...
+        flat_number=flat_number
+    )
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\contrib\auth\models.py", line 175, in create_user
+    return self._create_user(username, email, password, **extra_fields)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\contrib\auth\models.py", line 162, in _create_user
+    user = self._create_user_object(username, email, password, **extra_fields)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\contrib\auth\models.py", line 154, in _create_user_object
+    user = self.model(username=username, email=email, **extra_fields)
+  File "C:\Users\Sarvadnya\Desktop\Society\venv\Lib\site-packages\django\db\models\base.py", line 590, in __init__
+    raise TypeError(
+    ...<2 lines>...
+    )
+TypeError: User() got unexpected keyword arguments: 'flat_number'
+ERROR 2026-06-28 15:55:48,364 log "POST /upload-bulk-users/ HTTP/1.1" 500 96464

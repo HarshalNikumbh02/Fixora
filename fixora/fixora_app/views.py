@@ -12,7 +12,7 @@ from django.http import JsonResponse, FileResponse, HttpResponse
 from django.db.models import Q, IntegerField, When, Case, Count
 import random, os, requests, csv
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import send_mail, send_mass_mail
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
@@ -1076,38 +1076,95 @@ def download_sample_csv(request):
 
     return response
 
+@login_required
 def upload_bulk_users(request):
+    if request.user.role != 'admin':
+        return redirect('resident_dashboard')
+
     if request.method == 'POST' and request.FILES.get('user_csv'):
         csv_file = request.FILES['user_csv']
 
         if not csv_file.name.endswith('.csv'):
             messages.error(request, 'Please upload a valid CSV file.')
-            return redirect('your_admin_dashboard_url_name')
+            return redirect('register')
 
         file_data = csv_file.read().decode('utf-8').splitlines()
         reader = csv.reader(file_data)
         
+        # Skip the header row
         next(reader, None) 
 
         success_count = 0
-        for row in reader:
-            # Match these to the columns in the sample file
-            first_name = row[0]
-            last_name = row[1]
-            email = row[2]
-            flat_number = row[3] # You can save this to a Resident profile later!
+        emails_to_send = [] # 🟢 Create an empty mailbox to hold our outgoing emails
+        sender_email = settings.EMAIL_HOST_USER # Grabs your hnikumbh17@gmail.com from settings
 
-            if not User.objects.filter(username=email).exists():
+        for row in reader:
+            if len(row) < 4:
+                continue 
+
+            first_name = row[0].strip()
+            last_name = row[1].strip()
+            email = row[2].strip()
+            
+            raw_flat_data = row[3].strip().split('-')
+            wing = raw_flat_data[0].upper() if len(raw_flat_data) > 1 else None
+            flat_number = raw_flat_data[-1] 
+
+            user = User.objects.filter(email__iexact=email).first()
+            
+            if not user:
+                # 1. Create the new user
                 user = User.objects.create_user(
                     username=email,
                     email=email,
                     first_name=first_name,
                     last_name=last_name,
-                    password="FixoraResident123!" # Default temporary password
+                    password="Fixora@123",     
+                    role="resident",           
+                    society=request.user.society
+                )
+                
+                # 2. 🟢 Draft the Welcome Email and add it to our mailbox list
+                subject = f"Welcome to Fixora, {first_name}!"
+                message = (
+                    f"Hello {first_name},\n\n"
+                    f"Your society Admin has officially added you to the Fixora Society Management platform.\n\n"
+                    f"Here are your login credentials:\n"
+                    f"Login ID: {email}\n"
+                    f"Password: Fixora@123\n\n"
+                    f"Please log in and update your password immediately from your profile settings.\n\n"
+                    f"Welcome to the community!"
+                )
+                
+                # Django expects a tuple of (subject, message, sender, recipient_list)
+                emails_to_send.append((subject, message, sender_email, [email]))
+
+            membership_exists = SocietyMembership.objects.filter(
+                user=user, 
+                society=request.user.society, 
+                flat_number=flat_number
+            ).exists()
+
+            if not membership_exists:
+                SocietyMembership.objects.create(
+                    user=user,
+                    society=request.user.society,
+                    wing=wing,
+                    flat_number=flat_number,
+                    role="resident"
                 )
                 success_count += 1
 
-        messages.success(request, f'Successfully added {success_count} new residents!')
-        return redirect('your_admin_dashboard_url_name')
+        # 🟢 Fire all emails at once outside the loop!
+        if emails_to_send:
+            try:
+                send_mass_mail(emails_to_send, fail_silently=False)
+                print(f"Successfully sent {len(emails_to_send)} welcome emails.")
+            except Exception as e:
+                print(f"Email sending failed: {e}")
+                messages.warning(request, "Users created, but there was an error sending the welcome emails.")
+
+        messages.success(request, f'Successfully added {success_count} residents and sent welcome emails!')
+        return redirect('manage_users') 
         
-    return redirect('your_admin_dashboard_url_name')
+    return redirect('register')
