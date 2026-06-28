@@ -2,21 +2,21 @@ from urllib import request
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib import messages
 from django.core.cache import cache
 from .models import User, Alert, Complaint, ServiceBooking, Society, SocietyMembership
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from django.db.models import Q, IntegerField, When, Case, Count
-import random, os, requests
+import random, os, requests, csv
 from django.conf import settings
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 
 def home_page(request):
     # This renders strictly the public informational landing dashboard page layout
@@ -1063,3 +1063,50 @@ def verify_otp(request):
             messages.error(request, 'Invalid OTP. Please check your text messages.')
             
     return render(request, 'file/verify_otp.html')
+
+def download_sample_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="fixora_users_sample.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['First Name', 'Last Name', 'Email', 'Flat Number'])
+    
+    writer.writerow(['Rahul', 'Sharma', 'rahul@example.com', 'A-101'])
+
+    return response
+
+def upload_bulk_users(request):
+    if request.method == 'POST' and request.FILES.get('user_csv'):
+        csv_file = request.FILES['user_csv']
+
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, 'Please upload a valid CSV file.')
+            return redirect('your_admin_dashboard_url_name')
+
+        file_data = csv_file.read().decode('utf-8').splitlines()
+        reader = csv.reader(file_data)
+        
+        next(reader, None) 
+
+        success_count = 0
+        for row in reader:
+            # Match these to the columns in the sample file
+            first_name = row[0]
+            last_name = row[1]
+            email = row[2]
+            flat_number = row[3] # You can save this to a Resident profile later!
+
+            if not User.objects.filter(username=email).exists():
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    password="FixoraResident123!" # Default temporary password
+                )
+                success_count += 1
+
+        messages.success(request, f'Successfully added {success_count} new residents!')
+        return redirect('your_admin_dashboard_url_name')
+        
+    return redirect('your_admin_dashboard_url_name')

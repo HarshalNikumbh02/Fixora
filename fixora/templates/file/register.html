@@ -33,58 +33,94 @@
                 {% endfor %}
                 {% endif %}
 
+                <div class="bulk-upload-section p-4 mb-4"
+                    style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+
+                    <h5 class="mb-1" style="font-weight: 700; font-size: 16px; color: #0f172a;">Bulk Add Residents</h5>
+                    <p class="text-muted small mb-3">
+                        Have a large list? Download the template, fill it in, and upload the CSV file to create multiple
+                        accounts instantly.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'download_sample_csv' %}" class="btn btn-outline-primary"
+                            style="flex: 1; font-weight: 600; font-size: 14px;">
+                            Download Template
+                        </a>
+
+                        <form action="{% url 'upload_bulk_users' %}" method="POST" enctype="multipart/form-data"
+                            class="d-flex gap-2 m-0" style="flex: 2;">
+                            {% csrf_token %}
+                            <input type="file" name="user_csv" id="user_csv" accept=".csv" class="form-control"
+                                style="font-size: 14px;" required>
+                            <button type="submit" class="btn btn-primary px-3"
+                                style="font-weight: 600; font-size: 14px; background-color: #2563eb; border-color: #2563eb;">
+                                Upload
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mb-4 text-muted">
+                    <hr class="flex-grow-1" style="border-color: #cbd5e1;">
+                    <span class="px-3 small fw-bold" style="letter-spacing: 0.5px; color: #64748b;">OR ADD SINGLE
+                        USER</span>
+                    <hr class="flex-grow-1" style="border-color: #cbd5e1;">
+                </div>
+
                 <form method="POST" action="{% url 'register' %}">
-                    {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Full Name</label>
-                        <input type="text" name="full_name" class="form-control" placeholder="Full Name"
+                    <form method="POST" action="{% url 'register' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Full Name</label>
+                            <input type="text" name="full_name" class="form-control" placeholder="Full Name" required>
+                        </div>
+
+                        <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+
+                        <input type="text" name="phone" class="form-control" placeholder="Phone Number (10 Digits)"
+                            maxlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             required>
-                    </div>
-
-                    <input type="email" name="email" class="form-control" placeholder="Email Address" required>
-
-                    <input type="text" name="phone" class="form-control" placeholder="Phone Number (10 Digits)"
-                        maxlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                        required>
 
 
-                    <select name="role" id="roleSelect" class="form-control form-select mb-3" style="height: 45px;"
-                        required onchange="toggleFields()">
-                        <option value="" disabled selected>Assign System Role</option>
-                        <option value="resident">Resident</option>
-                        <option value="worker">Maintenance Worker</option>
-                    </select>
+                        <select name="role" id="roleSelect" class="form-control form-select mb-3" style="height: 45px;"
+                            required onchange="toggleFields()">
+                            <option value="" disabled selected>Assign System Role</option>
+                            <option value="resident">Resident</option>
+                            <option value="worker">Maintenance Worker</option>
+                        </select>
 
-                    
 
-                    <div class="row mb-3" id="residentField" style="display: none;">
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small fw-bold">Wing / Block</label>
-                            <input type="text" name="wing" class="form-control" placeholder="e.g. A, B, Tower 1">
+
+                        <div class="row mb-3" id="residentField" style="display: none;">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Wing / Block</label>
+                                <input type="text" name="wing" class="form-control" placeholder="e.g. A, B, Tower 1">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Flat Number</label>
+                                <input type="text" name="flat_number" class="form-control" placeholder="e.g. 101, 102">
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-muted small fw-bold">Flat Number</label>
-                            <input type="text" name="flat_number" class="form-control" placeholder="e.g. 101, 102">
+
+                        <div id="workerField" style="display: none;">
+                            <input type="text" name="worker_id" id="workerInput" class="form-control"
+                                placeholder="Worker ID (e.g., PLUMB-01)">
                         </div>
-                    </div>
 
-                    <div id="workerField" style="display: none;">
-                        <input type="text" name="worker_id" id="workerInput" class="form-control"
-                            placeholder="Worker ID (e.g., PLUMB-01)">
-                    </div>
+                        <input type="password" name="password" class="form-control" placeholder="Temporary Password"
+                            required>
+                        <input type="password" name="confirm_password" class="form-control"
+                            placeholder="Confirm Temporary Password" required>
 
-                    <input type="password" name="password" class="form-control" placeholder="Temporary Password"
-                        required>
-                    <input type="password" name="confirm_password" class="form-control"
-                        placeholder="Confirm Temporary Password" required>
-
-                    <div class="d-flex gap-2 mt-4">
-                        <a href="{% url 'manage_users' %}" class="btn btn-light flex-fill"
-                            style="height: 50px; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid #dee2e6; border-radius: 10px;">Cancel</a>
-                        <button type="submit" class="btn-login flex-fill m-0">Create User</button>
-                    </div>
-                </form>
+                        <div class="d-flex gap-2 mt-4">
+                            <a href="{% url 'manage_users' %}" class="btn btn-light flex-fill"
+                                style="height: 50px; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid #dee2e6; border-radius: 10px;">Cancel</a>
+                            <button type="submit" class="btn-login flex-fill m-0">Create User</button>
+                        </div>
+                    </form>
             </div>
         </div>
     </div>

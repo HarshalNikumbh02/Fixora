@@ -5,8 +5,8 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
 
     # Core Public Interface Routes
-    path('', views.home_page, name='home'), # LANDING HOME PAGE IS NOW AT THE ROOT URL '/'
-    path('login/', views.login_page, name='login'), # SHIFTED LOGIN VIEW PATH TO Explicit '/login/'
+    path('', views.home_page, name='home'),
+    path('login/', views.login_page, name='login'),
     path('register/', views.register_page, name='register'),
     path('logout/', views.logout_view, name='logout'),
     
@@ -25,7 +25,6 @@ urlpatterns = [
     path('service/book/submit/', views.book_service_submit, name='book_service_submit'),
     path('service/my/', views.my_services, name='my_services'),
 
-    
     # Alerts
     path('alerts/', views.alerts, name='alerts'),
 
@@ -71,4 +70,8 @@ urlpatterns = [
     #password reset
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='file/password_reset_confirm.html'), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='file/password_reset_complete.html'), name='password_reset_complete'),
+
+    #CSV Upload and Download
+    path('download-sample-csv/', views.download_sample_csv, name='download_sample_csv'),
+    path('upload-bulk-users/', views.upload_bulk_users, name='upload_bulk_users'),
 ]
