@@ -1158,7 +1158,7 @@ def upload_bulk_users(request):
         # 🟢 Fire all emails at once outside the loop!
         if emails_to_send:
             try:
-                send_mass_mail(emails_to_send, fail_silently=True)
+                send_mass_mail(emails_to_send)
                 print(f"Successfully sent {len(emails_to_send)} welcome emails.")
             except Exception as e:
                 print(f"Email sending failed: {e}")
