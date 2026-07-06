@@ -1187,22 +1187,29 @@ def mobile_api_test(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def mobile_login(request):
-    login_id = request.data.get('email') # Can be email or phone
+    login_id = request.data.get('email') # This holds the typed email OR phone
     password = request.data.get('password')
     
     User = get_user_model()
     user = None
 
-    # 1. Try to find the user by their Email manually
+    # 1. Smart Search: Email vs Phone
     try:
-        user_record = User.objects.get(email=login_id)
+        if '@' in login_id:
+            # User typed an email
+            user_record = User.objects.get(email=login_id)
+        else:
+            # User typed a phone number
+            # ⚠️ Change 'phone_number' if your database column is named differently!
+            user_record = User.objects.get(phone_number=login_id) 
+
         # Verify the password matches
         if user_record.check_password(password):
             user = user_record
     except User.DoesNotExist:
         pass
 
-    # 2. Fallback to standard authentication (in case they DO use a username)
+    # 2. Fallback to standard authentication
     if user is None:
         user = authenticate(request, username=login_id, password=password)
 
