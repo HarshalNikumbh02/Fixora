@@ -17,8 +17,13 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view
+
+# REST Framework imports for API endpoints
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
 
 User = get_user_model()
 def home_page(request):
@@ -1178,3 +1183,21 @@ def mobile_api_test(request):
         "message": "Fixora API is live and ready for mobile! 🚀",
         "version": "1.0"
     })
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def mobile_login(request):
+    login_id = request.data.get('email')
+    password = request.data.get('password')
+    user = authenticate(request, username=login_id, password=password)
+    if user is not None:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.id,
+            'message': 'Login successful!'
+        }, status=200)
+    else:
+        return Response({
+            'error': 'Invalid credentials. Please check your email/phone and password.'
+        }, status=400)
