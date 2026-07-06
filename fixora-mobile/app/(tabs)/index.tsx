@@ -1,56 +1,50 @@
 import { useState } from 'react';
 import { Text, View, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
-// Import your separated styles 
+// Separated styles 
 import { styles } from './loginStyles'; 
 
 export default function HomeScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Controls the loading spinner
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Expo Router for navigating between screens
+  const router = useRouter();
 
   const handleLogin = async () => {
-    // 1. Basic validation
     if (!email || !password) {
       Alert.alert("Error", "Please enter both email/phone and password.");
       return;
     }
 
-    // 2. Start the loading spinner
     setIsLoading(true);
 
     try {
-      // 3. Send the POST request to your LIVE Render server
       const response = await fetch('https://fixora-app.onrender.com/api/mobile-login/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email, 
-          password: password
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password }),
       });
 
       const data = await response.json();
 
-      // 4. Handle the server's response
       if (response.ok) {
-        // Success! The server gave us a Token.
-        Alert.alert("Success!", `Login worked! Token: ${data.token}`);
+        // 1. Save the token and user ID to the iPhone's permanent memory
+        await AsyncStorage.setItem('userToken', data.token);
+        await AsyncStorage.setItem('userId', String(data.user_id));
         
-        // In the next step, we will save this token securely to the phone
-        // and navigate to the Resident Dashboard!
+        // 2. Navigate away from the login screen to the Dashboard!
+        router.replace('/dashboard');
       } else {
-        // The server rejected the credentials (wrong password, etc.)
         Alert.alert("Login Failed", data.error || "Invalid credentials.");
       }
     } catch (error) {
-      // The phone couldn't reach the internet/server
-      Alert.alert("Network Error", "Could not connect to the server. Please try again.");
+      Alert.alert("Network Error", "Could not connect to the server.");
       console.error(error);
     } finally {
-      // 5. Stop the loading spinner no matter what happens
       setIsLoading(false);
     }
   };
@@ -81,14 +75,13 @@ export default function HomeScreen() {
           secureTextEntry 
         />
 
-        {/* Dynamic Login Button */}
         <TouchableOpacity 
           style={styles.loginButton} 
           onPress={handleLogin}
-          disabled={isLoading} // Prevents double-tapping the button
+          disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="white" /> // Shows spinner if loading
+            <ActivityIndicator color="white" /> 
           ) : (
             <Text style={styles.loginButtonText}>Sign In</Text>
           )}
