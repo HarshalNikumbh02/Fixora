@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
+from fixora_app import views
 
 urlpatterns = [
 
@@ -74,4 +75,7 @@ urlpatterns = [
     #CSV Upload and Download
     path('download-sample-csv/', views.download_sample_csv, name='download_sample_csv'),
     path('upload-bulk-users/', views.upload_bulk_users, name='upload_bulk_users'),
+
+    # Mobile API Test Endpoint
+    path('api/test/', views.mobile_api_test, name='api_test'),
 ]

@@ -17,6 +17,8 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth import get_user_model
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 User = get_user_model()
 def home_page(request):
@@ -1168,3 +1170,11 @@ def upload_bulk_users(request):
         return redirect('manage_users') 
         
     return redirect('register')
+
+@api_view(['GET'])
+def mobile_api_test(request):
+    return Response({
+        "status": "success",
+        "message": "Fixora API is live and ready for mobile! 🚀",
+        "version": "1.0"
+    })
