@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Text, View, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { 
+  Text, 
+  View, 
+  TextInput, 
+  TouchableOpacity, 
+  Alert, 
+  ActivityIndicator,
+  Keyboard, // 🟢 Added to handle manual dismissal
+  TouchableWithoutFeedback // 🟢 Added to capture background taps
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
@@ -30,36 +39,26 @@ export default function HomeScreen() {
       const rawText = await response.text(); 
       let data;
 
-      // 1. ISOLATED CHECK: Did Django send valid data?
       try {
         data = JSON.parse(rawText);
       } catch (parseError) {
-        console.log("============== REAL BACKEND CRASH ==============");
-        print(rawText);
-        Alert.alert("Server Error", "Django sent an invalid HTML page.");
+        Alert.alert("Server Error", "Django sent an invalid response.");
         setIsLoading(false);
         return;
       }
 
-      // 2. ISOLATED CHECK: Did the credentials pass?
       if (!response.ok) {
         Alert.alert("Login Failed", data.error || "Invalid credentials.");
         setIsLoading(false);
         return;
       }
 
-      // 3. ISOLATED CHECK: Is the phone storage or navigation breaking?
       try {
-        console.log("Django passed! Attempting to save token securely...");
         await AsyncStorage.setItem('userToken', data.token);
         await AsyncStorage.setItem('userId', String(data.user_id));
-        
-        console.log("Token saved! Redirecting to dashboard...");
         router.replace('/dashboard');
       } catch (phoneError: any) {
-        console.log("============== PHONE DEVICE ERROR ==============");
-        console.log(phoneError);
-        Alert.alert("Device Error", `Could not complete action: ${phoneError.message}`);
+        Alert.alert("Device Error", `Could not save session: ${phoneError.message}`);
       }
 
     } catch (networkError) {
@@ -71,35 +70,38 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>Fixora</Text>
-        <Text style={styles.subtitle}>Smart Society Care</Text>
+    // 🟢 Outer wrapper dismisses the keypad whenever you tap any empty space
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>Fixora</Text>
+          <Text style={styles.subtitle}>Smart Society Care</Text>
+        </View>
+
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email or Phone Number"
+            placeholderTextColor="#94a3b8"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#94a3b8"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry 
+          />
+
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
+            {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.loginButtonText}>Sign In</Text>}
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <View style={styles.formContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email or Phone Number"
-          placeholderTextColor="#94a3b8"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#94a3b8"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry 
-        />
-
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
-          {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.loginButtonText}>Sign In</Text>}
-        </TouchableOpacity>
-      </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
