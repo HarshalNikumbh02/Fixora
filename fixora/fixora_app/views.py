@@ -20,7 +20,7 @@ from django.contrib.auth import get_user_model
 
 # REST Framework imports for API endpoints
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, get_user_model
@@ -1188,18 +1188,13 @@ def mobile_api_test(request):
 @permission_classes([AllowAny])
 def mobile_login(request):
     try:
-        login_id = request.data.get('email') # Contains the typed email OR phone number
+        login_id = request.data.get('email')
         password = request.data.get('password')
-        
         if not login_id or not password:
             return Response({'error': 'Credentials and password are required.'}, status=400)
-
         User = get_user_model()
         user = None
-
-        # 1. Smart Search: Email vs Phone Number
         if '@' in login_id:
-            # User typed an email
             try:
                 user_record = User.objects.get(email=login_id)
                 if user_record.check_password(password):
@@ -1207,26 +1202,19 @@ def mobile_login(request):
             except User.DoesNotExist:
                 pass
         else:
-            # User typed a phone number -> Dynamically test common column names
             possible_phone_fields = ['phone_number', 'phone', 'mobile', 'mobile_no', 'contact']
             actual_fields = [f.name for f in User._meta.get_fields()]
-            
             for field in possible_phone_fields:
                 if field in actual_fields:
                     try:
-                        # Dynamically query the database using the discovered field name
                         user_record = User.objects.get(**{field: login_id})
                         if user_record.check_password(password):
                             user = user_record
-                            break # Found the user, stop looping!
+                            break
                     except User.DoesNotExist:
                         continue
-
-        # 2. Fallback to standard authentication if direct lookups fail
         if user is None:
             user = authenticate(request, username=login_id, password=password)
-
-        # 3. Issue Token on successful validation
         if user is not None:
             token, created = Token.objects.get_or_create(user=user)
             return Response({
@@ -1236,8 +1224,40 @@ def mobile_login(request):
             }, status=200)
         else:
             return Response({'error': 'Invalid credentials. Please check your inputs.'}, status=400)
-
     except Exception as python_error:
         return Response({
             'error': f"Backend Exception: {str(python_error)}"
         }, status=500)
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # 🔒 Only users with a valid token can access this
+def mobile_create_complaint(request):
+    try:
+        title = request.data.get('title')
+        description = request.data.get('description')
+        
+        if not title or not description:
+            return Response({'error': 'Title and description are required.'}, status=400)
+
+        # request.user contains the exact resident who is logged into the iPhone app
+        resident = request.user 
+
+        # 🟢 Creating the database entry
+        # NOTE: If your Django model uses different field names (like 'user' instead of 'resident'),
+        # or if your model is named differently, update this section to match your models.py!
+        from .models import Complaint # Assuming your model is named Complaint
+        
+        new_complaint = Complaint.objects.create(
+            resident=resident, 
+            title=title,
+            description=description,
+            status='Pending' # Default status for new issues
+        )
+
+        return Response({
+            'message': 'Complaint registered successfully!',
+            'complaint_id': new_complaint.id
+        }, status=201)
+
+    except Exception as e:
+        return Response({'error': f"Backend failed to save: {str(e)}"}, status=500)

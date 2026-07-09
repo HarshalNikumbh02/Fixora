@@ -79,4 +79,5 @@ urlpatterns = [
     # Mobile API Test Endpoint
     path('api/test/', views.mobile_api_test, name='api_test'),
     path('api/mobile-login/', views.mobile_login, name='mobile_login'),
+    path('api/complaints/create/', views.mobile_create_complaint, name='mobile_create_complaint'),
 ]

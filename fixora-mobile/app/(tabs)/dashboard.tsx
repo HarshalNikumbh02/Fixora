@@ -42,7 +42,7 @@ export default function DashboardScreen() {
       {/* Maintenance Request Card */}
       <TouchableOpacity 
         style={styles.card} 
-        onPress={() => Alert.alert("Coming Soon", "This will open the Maintenance form!")}
+        onPress={() => router.push('/raiseComplaint')}
       >
         <Text style={styles.cardTitle}>🔧 Request Maintenance</Text>
         <Text style={styles.cardDescription}>Report plumbing, electrical, or structural issues</Text>
