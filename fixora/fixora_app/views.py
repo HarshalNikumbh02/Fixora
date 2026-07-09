@@ -1187,41 +1187,47 @@ def mobile_api_test(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def mobile_login(request):
-    login_id = request.data.get('email') # This holds the typed email OR phone
-    password = request.data.get('password')
-    
-    User = get_user_model()
-    user = None
-
-    # 1. Smart Search: Email vs Phone
     try:
-        if '@' in login_id:
-            # User typed an email
-            user_record = User.objects.get(email=login_id)
+        login_id = request.data.get('email')
+        password = request.data.get('password')
+        
+        if not login_id or not password:
+            return Response({'error': 'Email/Phone and password are required.'}, status=400)
+
+        User = get_user_model()
+        user = None
+
+        # 1. Smart Search: Email vs Phone
+        try:
+            if '@' in login_id:
+                user_record = User.objects.get(email=login_id)
+            else:
+                # ⚠️ If your field is named 'phone' or 'mobile_no' instead of 'phone_number',
+                # this line will throw an error caught by our new debug wrapper below!
+                user_record = User.objects.get(phone_number=login_id) 
+
+            if user_record.check_password(password):
+                user = user_record
+        except User.DoesNotExist:
+            pass
+
+        # 2. Fallback to standard authentication
+        if user is None:
+            user = authenticate(request, username=login_id, password=password)
+
+        # 3. Issue Token
+        if user is not None:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user_id': user.id,
+                'message': 'Login successful!'
+            }, status=200)
         else:
-            # User typed a phone number
-            # ⚠️ Change 'phone_number' if your database column is named differently!
-            user_record = User.objects.get(phone_number=login_id) 
+            return Response({'error': 'Invalid credentials.'}, status=400)
 
-        # Verify the password matches
-        if user_record.check_password(password):
-            user = user_record
-    except User.DoesNotExist:
-        pass
-
-    # 2. Fallback to standard authentication
-    if user is None:
-        user = authenticate(request, username=login_id, password=password)
-
-    # 3. Issue the Token if successful
-    if user is not None:
-        token, created = Token.objects.get_or_create(user=user)
+    except Exception as python_error:
+        # 🟢 This intercepts the 500 crash and prints the exact error line to your iPhone screen
         return Response({
-            'token': token.key,
-            'user_id': user.id,
-            'message': 'Login successful!'
-        }, status=200)
-    else:
-        return Response({
-            'error': 'Invalid credentials. Please check your email/phone and password.'
-        }, status=400)
+            'error': f"Backend Exception: {str(python_error)}"
+        }, status=500)

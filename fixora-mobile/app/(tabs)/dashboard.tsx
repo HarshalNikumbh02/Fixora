@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
 // Separated styles
-import { styles } from './dashboardStyles';
+import { styles } from '../../styles/dashboardStyles';
 
 export default function DashboardScreen() {
   const router = useRouter();
