@@ -1188,34 +1188,45 @@ def mobile_api_test(request):
 @permission_classes([AllowAny])
 def mobile_login(request):
     try:
-        login_id = request.data.get('email')
+        login_id = request.data.get('email') # Contains the typed email OR phone number
         password = request.data.get('password')
         
         if not login_id or not password:
-            return Response({'error': 'Email/Phone and password are required.'}, status=400)
+            return Response({'error': 'Credentials and password are required.'}, status=400)
 
         User = get_user_model()
         user = None
 
-        # 1. Smart Search: Email vs Phone
-        try:
-            if '@' in login_id:
+        # 1. Smart Search: Email vs Phone Number
+        if '@' in login_id:
+            # User typed an email
+            try:
                 user_record = User.objects.get(email=login_id)
-            else:
-                # ⚠️ If your field is named 'phone' or 'mobile_no' instead of 'phone_number',
-                # this line will throw an error caught by our new debug wrapper below!
-                user_record = User.objects.get(phone_number=login_id) 
+                if user_record.check_password(password):
+                    user = user_record
+            except User.DoesNotExist:
+                pass
+        else:
+            # User typed a phone number -> Dynamically test common column names
+            possible_phone_fields = ['phone_number', 'phone', 'mobile', 'mobile_no', 'contact']
+            actual_fields = [f.name for f in User._meta.get_fields()]
+            
+            for field in possible_phone_fields:
+                if field in actual_fields:
+                    try:
+                        # Dynamically query the database using the discovered field name
+                        user_record = User.objects.get(**{field: login_id})
+                        if user_record.check_password(password):
+                            user = user_record
+                            break # Found the user, stop looping!
+                    except User.DoesNotExist:
+                        continue
 
-            if user_record.check_password(password):
-                user = user_record
-        except User.DoesNotExist:
-            pass
-
-        # 2. Fallback to standard authentication
+        # 2. Fallback to standard authentication if direct lookups fail
         if user is None:
             user = authenticate(request, username=login_id, password=password)
 
-        # 3. Issue Token
+        # 3. Issue Token on successful validation
         if user is not None:
             token, created = Token.objects.get_or_create(user=user)
             return Response({
@@ -1224,10 +1235,9 @@ def mobile_login(request):
                 'message': 'Login successful!'
             }, status=200)
         else:
-            return Response({'error': 'Invalid credentials.'}, status=400)
+            return Response({'error': 'Invalid credentials. Please check your inputs.'}, status=400)
 
     except Exception as python_error:
-        # 🟢 This intercepts the 500 crash and prints the exact error line to your iPhone screen
         return Response({
             'error': f"Backend Exception: {str(python_error)}"
         }, status=500)

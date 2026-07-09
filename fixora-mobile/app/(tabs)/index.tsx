@@ -3,7 +3,7 @@ import { Text, View, TextInput, TouchableOpacity, Alert, ActivityIndicator } fro
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-// 🟢 Separated Styles imported from root styles folder
+// Separated Styles imported from root styles folder
 import { styles } from '../../styles/loginStyles'; 
 
 export default function HomeScreen() {
@@ -27,31 +27,44 @@ export default function HomeScreen() {
         body: JSON.stringify({ email: email, password: password }),
       });
 
-      // Read response as plain text first to stop the JSON parser from crashing
       const rawText = await response.text(); 
+      let data;
 
+      // 1. ISOLATED CHECK: Did Django send valid data?
       try {
-        const data = JSON.parse(rawText);
-
-        if (response.ok) {
-          await AsyncStorage.setItem('userToken', data.token);
-          await AsyncStorage.setItem('userId', String(data.user_id));
-          router.replace('/dashboard');
-        } else {
-          Alert.alert("Login Failed", data.error || "Invalid credentials.");
-        }
+        data = JSON.parse(rawText);
       } catch (parseError) {
-        // 🔴 If Django crashes, this will print the exact Python error page to your terminal!
-        console.log("============== DJANGO CRASH LOG START ==============");
-        console.log(rawText);
-        console.log("============== DJANGO CRASH LOG END ==============");
-        
-        Alert.alert("Server Error", "Django sent an invalid response. Check your VS Code terminal log.");
+        console.log("============== REAL BACKEND CRASH ==============");
+        print(rawText);
+        Alert.alert("Server Error", "Django sent an invalid HTML page.");
+        setIsLoading(false);
+        return;
       }
 
-    } catch (error) {
+      // 2. ISOLATED CHECK: Did the credentials pass?
+      if (!response.ok) {
+        Alert.alert("Login Failed", data.error || "Invalid credentials.");
+        setIsLoading(false);
+        return;
+      }
+
+      // 3. ISOLATED CHECK: Is the phone storage or navigation breaking?
+      try {
+        console.log("Django passed! Attempting to save token securely...");
+        await AsyncStorage.setItem('userToken', data.token);
+        await AsyncStorage.setItem('userId', String(data.user_id));
+        
+        console.log("Token saved! Redirecting to dashboard...");
+        router.replace('/dashboard');
+      } catch (phoneError: any) {
+        console.log("============== PHONE DEVICE ERROR ==============");
+        console.log(phoneError);
+        Alert.alert("Device Error", `Could not complete action: ${phoneError.message}`);
+      }
+
+    } catch (networkError) {
       Alert.alert("Network Error", "Could not connect to the server.");
-      console.error(error);
+      console.error(networkError);
     } finally {
       setIsLoading(false);
     }
