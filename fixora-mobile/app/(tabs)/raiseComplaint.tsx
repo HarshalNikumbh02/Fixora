@@ -3,13 +3,13 @@ import { Text, View, TextInput, TouchableOpacity, Alert, ActivityIndicator } fro
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-// 🟢 Separated Styles
+// Separated Styles
 import { styles } from '../../styles/complaintStyles';
 
 export default function RaiseComplaintScreen() {
   const router = useRouter();
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState(''); 
+  const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -21,24 +21,30 @@ export default function RaiseComplaintScreen() {
     setIsSubmitting(true);
 
     try {
-      // Retrieve the saved secure token from device storage
       const token = await AsyncStorage.getItem('userToken');
 
-      // POST the complaint payload to your Django API
       const response = await fetch('https://fixora-app.onrender.com/api/complaints/create/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${token}` // Passes the user's identity securely
+          'Authorization': `Token ${token}`
         },
         body: JSON.stringify({ title, description }),
       });
+
+      // 🟢 NEW: Read raw response to capture the exact error
+      const rawText = await response.text();
 
       if (response.ok) {
         Alert.alert("Success", "Your maintenance request has been submitted!");
         router.replace('/dashboard');
       } else {
-        Alert.alert("Submission Failed", "Could not process request.");
+        // 🔴 Prints the exact database or backend logic error to your console
+        console.log("============== BACKEND COMPLAINT ERROR ==============");
+        console.log(rawText);
+        console.log("=====================================================");
+
+        Alert.alert("Submission Failed", "The server rejected the complaint. Check your terminal log.");
       }
     } catch (error) {
       Alert.alert("Network Error", "Unable to connect to the server.");

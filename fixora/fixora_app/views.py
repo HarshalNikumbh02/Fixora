@@ -20,7 +20,7 @@ from django.contrib.auth import get_user_model
 
 # REST Framework imports for API endpoints
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, get_user_model
@@ -1230,34 +1230,24 @@ def mobile_login(request):
         }, status=500)
     
 @api_view(['POST'])
-@permission_classes([IsAuthenticated]) # 🔒 Only users with a valid token can access this
+@permission_classes([IsAuthenticated])
 def mobile_create_complaint(request):
     try:
         title = request.data.get('title')
         description = request.data.get('description')
         
-        if not title or not description:
-            return Response({'error': 'Title and description are required.'}, status=400)
+        # 🟢 Temporary log to see incoming mobile data in Render logs
+        print(f"Received complaint: {title} - {description} from user {request.user}")
 
-        # request.user contains the exact resident who is logged into the iPhone app
-        resident = request.user 
-
-        # 🟢 Creating the database entry
-        # NOTE: If your Django model uses different field names (like 'user' instead of 'resident'),
-        # or if your model is named differently, update this section to match your models.py!
-        from .models import Complaint # Assuming your model is named Complaint
-        
-        new_complaint = Complaint.objects.create(
-            resident=resident, 
-            title=title,
-            description=description,
-            status='Pending' # Default status for new issues
-        )
-
+        # Return a mock success response to confirm the URL and Token work perfectly
         return Response({
-            'message': 'Complaint registered successfully!',
-            'complaint_id': new_complaint.id
+            'message': 'Mock Success! The mobile network bridge is 100% working.',
+            'received_data': {
+                'title': title,
+                'description': description,
+                'user': str(request.user)
+            }
         }, status=201)
 
     except Exception as e:
-        return Response({'error': f"Backend failed to save: {str(e)}"}, status=500)
+        return Response({'error': f"Test endpoint failed: {str(e)}"}, status=500)
