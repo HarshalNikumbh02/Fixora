@@ -38,7 +38,33 @@ export const styles = StyleSheet.create({
   },
   textArea: {
     height: 120,
-    textAlignVertical: 'top', // Crucial for Android multi-line inputs
+    textAlignVertical: 'top',
+  },
+  // 📸 NEW STYLES FOR PHOTO UPLOAD UI
+  photoButton: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+  },
+  photoButtonText: {
+    color: '#475569',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  previewImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginTop: 12,
+    resizeMode: 'cover',
   },
   submitButton: {
     backgroundColor: '#2563eb',
@@ -46,6 +72,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 32,
+    marginBottom: 40,
   },
   submitText: {
     color: 'white',

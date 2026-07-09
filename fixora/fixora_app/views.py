@@ -1233,21 +1233,30 @@ def mobile_login(request):
 @permission_classes([IsAuthenticated])
 def mobile_create_complaint(request):
     try:
+        # FormData values are read from request.data just like normal text
         title = request.data.get('title')
         description = request.data.get('description')
         
-        # 🟢 Temporary log to see incoming mobile data in Render logs
-        print(f"Received complaint: {title} - {description} from user {request.user}")
+        # 📸 Catch the file binary sent over the multipart request stream
+        uploaded_image = request.FILES.get('image')
 
-        # Return a mock success response to confirm the URL and Token work perfectly
+        print(f"Received Complaint: {title}")
+        if uploaded_image:
+            print(f"Attached file discovered: {uploaded_image.name} ({uploaded_image.size} bytes)")
+
+        # In your next step, you will update your Django model to contain:
+        # image = models.ImageField(upload_to='complaints/', null=True, blank=True)
+        # So you can save it to the database with:
+        # Complaint.objects.create(..., image=uploaded_image)
+
         return Response({
-            'message': 'Mock Success! The mobile network bridge is 100% working.',
-            'received_data': {
+            'message': 'File uploaded successfully!',
+            'received_text': {
                 'title': title,
-                'description': description,
-                'user': str(request.user)
-            }
+                'description': description
+            },
+            'received_file': uploaded_image.name if uploaded_image else "No image attached"
         }, status=201)
 
     except Exception as e:
-        return Response({'error': f"Test endpoint failed: {str(e)}"}, status=500)
+        return Response({'error': f"File processing failed: {str(e)}"}, status=500)
